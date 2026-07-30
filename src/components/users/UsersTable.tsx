@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { MOCK_USERS } from '@/lib/mockData'
+import { formatMoney } from '@/lib/utils'
 import { Avatar } from '@/components/shared/Avatar'
 import { Badge, statusTone } from '@/components/shared/Badge'
 import { DataTable } from '@/components/shared/DataTable'
@@ -21,7 +22,7 @@ export function UsersTable() {
         !q ||
         user.name.toLowerCase().includes(q) ||
         user.email.toLowerCase().includes(q) ||
-        (user.property || '').toLowerCase().includes(q)
+        (user.plan || '').toLowerCase().includes(q)
       return matchesFilter && matchesQuery
     })
   }, [debouncedQuery, filter])
@@ -51,14 +52,13 @@ export function UsersTable() {
       render: (user: PlatformUser) => <Badge tone={statusTone(user.status)}>{user.status}</Badge>,
     },
     {
-      key: 'property',
-      header: 'Property / Unit',
+      key: 'plan',
+      header: 'Subscription',
       render: (user: PlatformUser) => (
-        <span className="text-slate-600">
-          {user.property ? `${user.property}${user.unit ? ` · ${user.unit}` : ''}` : '—'}
-        </span>
+        <span className="text-slate-600">{user.plan ? `${user.plan}${user.mrr ? ` · ${formatMoney(user.mrr)}/mo` : ''}` : '—'}</span>
       ),
     },
+    { key: 'joined', header: 'Joined', render: (user: PlatformUser) => user.joined },
   ]
 
   return (
@@ -68,7 +68,7 @@ export function UsersTable() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search users…"
-          className="w-full max-w-sm rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-brand-500"
+          className="admin-input w-full max-w-sm"
         />
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
@@ -77,7 +77,7 @@ export function UsersTable() {
               type="button"
               onClick={() => setFilter(f)}
               className={`rounded-full px-3 py-1.5 text-xs font-semibold capitalize ${
-                filter === f ? 'bg-brand-600 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'
+                filter === f ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'
               }`}
             >
               {f}

@@ -1,66 +1,108 @@
-import type { DashboardStats, Invoice, MaintenanceJob, PlatformUser, Property } from '@/types/api.types'
-
-export const MOCK_PROPERTIES: Property[] = [
-  { id: 0, name: '12 Park Lane', address: 'London, SW1A 1AA', status: 'Partial', rent: '£2,450', compliance: true, units: 4, occupied: 2 },
-  { id: 1, name: '45 Queens Road', address: 'London, SW2 3TR', status: 'Partial', rent: '£1,850', compliance: true, units: 4, occupied: 1 },
-  { id: 2, name: '88 King Street', address: 'London, EC2V 8BB', status: 'Vacant', rent: '£2,100', compliance: false, units: 1, occupied: 0 },
-  { id: 3, name: '15 Victoria Ave', address: 'London, N1 5EH', status: 'Partial', rent: '£1,950', compliance: true, units: 4, occupied: 1 },
-]
+import type {
+  CmsPage,
+  MonthlyMetric,
+  PlatformStats,
+  PlatformUser,
+  Subscription,
+  SubscriptionPlan,
+  SupportMessage,
+} from '@/types/api.types'
 
 export const MOCK_USERS: PlatformUser[] = [
-  { id: 0, name: 'John Smith', email: 'john@landlordhq.co.uk', role: 'landlord', status: 'active' },
-  { id: 1, name: 'Sarah Johnson', email: 'sarah.j@email.com', role: 'tenant', status: 'active', property: '12 Park Lane', unit: 'Flat 2A' },
-  { id: 2, name: 'David Wilson', email: 'david.w@email.com', role: 'tenant', status: 'active', property: '45 Queens Road', unit: 'Flat 1A' },
-  { id: 3, name: 'Michael Lee', email: 'michael.l@email.com', role: 'tenant', status: 'active', property: '15 Victoria Ave', unit: 'Flat 2A' },
-  { id: 4, name: 'Priya Sharma', email: 'priya.s@email.com', role: 'tenant', status: 'active', property: '12 Park Lane', unit: 'Flat 2B' },
-  { id: 5, name: 'James Chen', email: 'james.chen@email.com', role: 'tenant', status: 'pending', property: '12 Park Lane', unit: 'Flat 2B' },
-  { id: 6, name: 'Mike Thompson', email: 'mike@plumberpro.co.uk', role: 'contractor', status: 'active' },
-  { id: 7, name: 'Heating Co.', email: 'jobs@heatingco.co.uk', role: 'contractor', status: 'active' },
-  { id: 8, name: 'Emma Roberts', email: 'emma.r@email.com', role: 'tenant', status: 'inactive', property: '88 King Street', unit: 'Main Flat' },
+  { id: 0, name: 'John Smith', email: 'john@landlordhq.co.uk', role: 'landlord', status: 'active', joined: 'Jan 12, 2024', plan: 'Portfolio', mrr: 49 },
+  { id: 1, name: 'Sarah Johnson', email: 'sarah.j@email.com', role: 'tenant', status: 'active', joined: 'Jan 15, 2024' },
+  { id: 2, name: 'David Wilson', email: 'david.w@email.com', role: 'tenant', status: 'active', joined: 'Jun 1, 2023' },
+  { id: 3, name: 'Michael Lee', email: 'michael.l@email.com', role: 'tenant', status: 'active', joined: 'Mar 10, 2024' },
+  { id: 4, name: 'Priya Sharma', email: 'priya.s@email.com', role: 'tenant', status: 'active', joined: 'Jun 5, 2024' },
+  { id: 5, name: 'James Chen', email: 'james.chen@email.com', role: 'tenant', status: 'pending', joined: 'Jul 2, 2026' },
+  { id: 6, name: 'Mike Thompson', email: 'mike@plumberpro.co.uk', role: 'contractor', status: 'active', joined: 'Feb 20, 2024' },
+  { id: 7, name: 'Heating Co.', email: 'jobs@heatingco.co.uk', role: 'contractor', status: 'active', joined: 'Nov 8, 2023' },
+  { id: 8, name: 'Emma Roberts', email: 'emma.r@email.com', role: 'tenant', status: 'inactive', joined: 'Dec 1, 2022' },
+  { id: 9, name: 'Lisa Patel', email: 'lisa.patel@email.com', role: 'landlord', status: 'active', joined: 'Apr 3, 2025', plan: 'Pro', mrr: 19 },
+  { id: 10, name: 'Tom Wright', email: 'tom.wright@email.com', role: 'landlord', status: 'active', joined: 'May 18, 2025', plan: 'Starter', mrr: 0 },
+  { id: 11, name: 'Anna Kowalski', email: 'anna.k@email.com', role: 'landlord', status: 'active', joined: 'Jun 22, 2025', plan: 'Pro', mrr: 19 },
 ]
 
-export const MOCK_INVOICES: Invoice[] = [
-  { id: 0, num: 'INV-2026-1048', tenant: 'Sarah Johnson', prop: '12 Park Lane', unit: 'Flat 2A', amount: '£2,450', status: 'Pending', due: 'Jul 1, 2026', type: 'rent' },
-  { id: 1, num: 'INV-2026-1047', tenant: 'David Wilson', prop: '45 Queens Road', unit: 'Flat 1A', amount: '£1,850', status: 'Overdue', due: 'Jul 1, 2026', type: 'rent' },
-  { id: 2, num: 'INV-2026-1045', tenant: 'Michael Lee', prop: '15 Victoria Ave', unit: 'Flat 2A', amount: '£1,950', status: 'Pending', due: 'Jul 28, 2026', type: 'rent' },
-  { id: 3, num: 'INV-2026-1044', tenant: 'Sarah Johnson', prop: '12 Park Lane', unit: 'Flat 2A', amount: '£2,450', status: 'Paid', due: 'Jun 1, 2026', type: 'rent' },
-  { id: 4, num: 'INV-2026-1043', tenant: 'David Wilson', prop: '45 Queens Road', unit: 'Flat 1A', amount: '£1,850', status: 'Paid', due: 'Jun 1, 2026', type: 'rent' },
-  { id: 5, num: 'INV-2026-1042', tenant: 'Priya Sharma', prop: '12 Park Lane', unit: 'Flat 2B', amount: '£2,200', status: 'Pending', due: 'Jul 1, 2026', type: 'rent' },
+export const MOCK_PLANS: SubscriptionPlan[] = [
+  {
+    id: 0,
+    name: 'Starter',
+    priceMonthly: 0,
+    priceYearly: 0,
+    features: ['1 property', 'Up to 2 units', 'Basic support'],
+    active: true,
+    subscribers: 1,
+  },
+  {
+    id: 1,
+    name: 'Pro',
+    priceMonthly: 19,
+    priceYearly: 190,
+    features: ['Up to 5 properties', 'Unlimited units', 'Tenant portal', 'Priority support'],
+    active: true,
+    subscribers: 2,
+  },
+  {
+    id: 2,
+    name: 'Portfolio',
+    priceMonthly: 49,
+    priceYearly: 490,
+    features: ['Unlimited properties', 'Multi-user team', 'API access', 'Dedicated support'],
+    active: true,
+    subscribers: 1,
+  },
 ]
 
-export const MOCK_MAINTENANCE: MaintenanceJob[] = [
-  { id: 0, issue: 'Kitchen sink leaking', prop: '12 Park Lane', unit: 'Flat 2A', priority: 'High', status: 'progress', contractor: 'Plumber Pro', tenantName: 'Sarah Johnson' },
-  { id: 1, issue: 'Window latch broken', prop: '88 King Street', unit: 'Main Flat', priority: 'Medium', status: 'open', contractor: '—' },
-  { id: 2, issue: 'Damp patch in bedroom', prop: '12 Park Lane', unit: 'Flat 2A', priority: 'Low', status: 'open', contractor: '—', tenantName: 'Sarah Johnson' },
-  { id: 3, issue: 'Boiler not working', prop: '45 Queens Road', unit: 'Flat 1A', priority: 'High', status: 'progress', contractor: 'Heating Co.', tenantName: 'David Wilson' },
-  { id: 4, issue: 'Radiator not heating', prop: '15 Victoria Ave', unit: 'Flat 2A', priority: 'Medium', status: 'progress', contractor: 'Heating Co.', tenantName: 'Michael Lee' },
-  { id: 5, issue: 'Light flickering', prop: '15 Victoria Ave', unit: 'Flat 2A', priority: 'Low', status: 'done', contractor: 'Electric Fix', tenantName: 'Michael Lee' },
-  { id: 6, issue: 'Hallway light out', prop: '12 Park Lane', unit: 'Communal', priority: 'Medium', status: 'open', contractor: '—' },
+export const MOCK_SUBSCRIPTIONS: Subscription[] = [
+  { id: 0, userId: 0, userName: 'John Smith', email: 'john@landlordhq.co.uk', plan: 'Portfolio', billing: 'monthly', amount: 49, status: 'active', started: 'Jan 12, 2024', renews: 'Aug 12, 2026' },
+  { id: 1, userId: 9, userName: 'Lisa Patel', email: 'lisa.patel@email.com', plan: 'Pro', billing: 'yearly', amount: 190, status: 'active', started: 'Apr 3, 2025', renews: 'Apr 3, 2027' },
+  { id: 2, userId: 11, userName: 'Anna Kowalski', email: 'anna.k@email.com', plan: 'Pro', billing: 'monthly', amount: 19, status: 'active', started: 'Jun 22, 2025', renews: 'Jul 22, 2026' },
+  { id: 3, userId: 10, userName: 'Tom Wright', email: 'tom.wright@email.com', plan: 'Starter', billing: 'monthly', amount: 0, status: 'trial', started: 'May 18, 2025', renews: '—' },
 ]
 
-export function getDashboardStats(): DashboardStats {
+export const MONTHLY_METRICS: MonthlyMetric[] = [
+  { month: 'Jan', revenue: 420, users: 42, landlords: 8 },
+  { month: 'Feb', revenue: 480, users: 48, landlords: 9 },
+  { month: 'Mar', revenue: 510, users: 55, landlords: 10 },
+  { month: 'Apr', revenue: 620, users: 62, landlords: 11 },
+  { month: 'May', revenue: 680, users: 71, landlords: 12 },
+  { month: 'Jun', revenue: 740, users: 78, landlords: 13 },
+  { month: 'Jul', revenue: 820, users: 86, landlords: 14 },
+]
+
+export const MOCK_CMS: CmsPage[] = [
+  { id: 'faq', title: 'FAQ', slug: 'faq', updated: 'Jul 10, 2026', published: true, preview: 'How do I add a property? How does tenant invite work?' },
+  { id: 'privacy', title: 'Privacy Policy', slug: 'privacy', updated: 'Jun 1, 2026', published: true, preview: 'We collect account data, property details, and usage analytics…' },
+  { id: 'terms', title: 'Terms & Conditions', slug: 'terms', updated: 'Jun 1, 2026', published: true, preview: 'By using Landlord HQ you agree to our service terms…' },
+  { id: 'about', title: 'About', slug: 'about', updated: 'May 15, 2026', published: true, preview: 'Landlord HQ helps UK landlords manage properties, tenants, and compliance.' },
+]
+
+export const MOCK_SUPPORT: SupportMessage[] = [
+  { id: 0, from: 'John Smith', email: 'john@landlordhq.co.uk', role: 'landlord', subject: 'Billing question', message: 'Can I switch from monthly to yearly billing?', status: 'open', time: '2h ago' },
+  { id: 1, from: 'Lisa Patel', email: 'lisa.patel@email.com', role: 'landlord', subject: 'Add team member', message: 'How do I invite a co-manager to my account?', status: 'replied', time: '1d ago' },
+  { id: 2, from: 'Sarah Johnson', email: 'sarah.j@email.com', role: 'tenant', subject: 'Cannot log in', message: 'Password reset link expired. Please help.', status: 'open', time: '1d ago' },
+  { id: 3, from: 'Mike Thompson', email: 'mike@plumberpro.co.uk', role: 'contractor', subject: 'Profile verification', message: 'Submitted documents 3 days ago — any update?', status: 'closed', time: '3d ago' },
+]
+
+export function getPlatformStats(): PlatformStats {
   const landlords = MOCK_USERS.filter((u) => u.role === 'landlord').length
-  const tenants = MOCK_USERS.filter((u) => u.role === 'tenant' && u.status === 'active').length
+  const tenants = MOCK_USERS.filter((u) => u.role === 'tenant').length
   const contractors = MOCK_USERS.filter((u) => u.role === 'contractor').length
-  const units = MOCK_PROPERTIES.reduce((sum, p) => sum + p.units, 0)
-  const occupiedUnits = MOCK_PROPERTIES.reduce((sum, p) => sum + p.occupied, 0)
-  const openMaintenance = MOCK_MAINTENANCE.filter((m) => m.status === 'open' || m.status === 'progress').length
-  const overdueInvoices = MOCK_INVOICES.filter((i) => i.status === 'Overdue').length
-  const collectedThisMonth = MOCK_INVOICES.filter((i) => i.status === 'Paid').reduce((s, i) => s + parseInt(i.amount.replace(/[^\d]/g, ''), 10), 0)
-  const expectedThisMonth = MOCK_INVOICES.reduce((s, i) => s + parseInt(i.amount.replace(/[^\d]/g, ''), 10), 0)
-  const complianceAlerts = MOCK_PROPERTIES.filter((p) => !p.compliance).length
+  const activeSubscriptions = MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'active').length
+  const mrr = MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'active' && s.billing === 'monthly').reduce((s, sub) => s + sub.amount, 0)
+    + Math.round(MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'active' && s.billing === 'yearly').reduce((s, sub) => s + sub.amount, 0) / 12)
+  const trialUsers = MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'trial').length
+  const openSupport = MOCK_SUPPORT.filter((m) => m.status === 'open').length
 
   return {
+    totalUsers: MOCK_USERS.length,
     landlords,
     tenants,
     contractors,
-    properties: MOCK_PROPERTIES.length,
-    units,
-    occupiedUnits,
-    openMaintenance,
-    overdueInvoices,
-    collectedThisMonth,
-    expectedThisMonth,
-    complianceAlerts,
+    activeSubscriptions,
+    mrr,
+    arr: mrr * 12,
+    trialUsers,
+    openSupport,
   }
 }

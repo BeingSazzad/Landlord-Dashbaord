@@ -17,6 +17,22 @@ Separate repo from the mobile prototype. Uses mock data aligned with the mobile 
 - **Email:** `admin@landlordhq.co.uk`
 - **Password:** `Admin123!`
 
+## Auto-start (Cursor / VS Code)
+
+Open the project folder — dev server starts automatically via `.vscode/tasks.json`.
+First time: click **Allow** when prompted for automatic tasks.
+
+Or double-click `start-local.bat`.
+
+## Platform admin sections
+
+- **Overview** — users, MRR, subscriptions, support inbox
+- **Analytics** — monthly revenue & user growth charts
+- **Users** — all landlords, tenants, contractors
+- **Subscriptions** — active subs + manage plans
+- **CMS** — FAQ, Privacy, Terms, About
+- **Support** — inbox messages
+
 ## Scripts
 
 ```bash

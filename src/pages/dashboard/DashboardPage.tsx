@@ -1,14 +1,14 @@
 import { PageHeader } from '@/components/layout/PageHeader'
-import { DashboardOverview } from '@/components/dashboard/DashboardOverview'
+import { PlatformOverview } from '@/components/dashboard/PlatformOverview'
 
 export function DashboardPage() {
   return (
     <>
       <PageHeader
         title="Platform overview"
-        description="Cross-landlord snapshot of users, properties, rent and maintenance."
+        description="Users, subscriptions, revenue and support across the Landlord HQ app."
       />
-      <DashboardOverview />
+      <PlatformOverview />
     </>
   )
 }

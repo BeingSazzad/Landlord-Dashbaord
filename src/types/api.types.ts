@@ -17,60 +17,75 @@ export interface LoginResponse {
   user: AuthUser
 }
 
-export interface Property {
-  id: number
-  name: string
-  address: string
-  status: string
-  rent: string
-  compliance: boolean
-  units: number
-  occupied: number
-}
-
 export interface PlatformUser {
   id: number
   name: string
   email: string
   role: UserRole
   status: Status
-  property?: string
-  unit?: string
+  joined: string
+  plan?: string
+  mrr?: number
 }
 
-export interface Invoice {
+export interface SubscriptionPlan {
   id: number
-  num: string
-  tenant: string
-  prop: string
-  unit: string
-  amount: string
-  status: 'Pending' | 'Paid' | 'Overdue'
-  due: string
-  type: string
+  name: string
+  priceMonthly: number
+  priceYearly: number
+  features: string[]
+  active: boolean
+  subscribers: number
 }
 
-export interface MaintenanceJob {
+export interface Subscription {
   id: number
-  issue: string
-  prop: string
-  unit: string
-  priority: string
-  status: string
-  contractor: string
-  tenantName?: string
+  userId: number
+  userName: string
+  email: string
+  plan: string
+  billing: 'monthly' | 'yearly'
+  amount: number
+  status: 'active' | 'cancelled' | 'trial' | 'past_due'
+  started: string
+  renews: string
 }
 
-export interface DashboardStats {
+export interface MonthlyMetric {
+  month: string
+  revenue: number
+  users: number
+  landlords: number
+}
+
+export interface CmsPage {
+  id: string
+  title: string
+  slug: string
+  updated: string
+  published: boolean
+  preview: string
+}
+
+export interface SupportMessage {
+  id: number
+  from: string
+  email: string
+  role: string
+  subject: string
+  message: string
+  status: 'open' | 'replied' | 'closed'
+  time: string
+}
+
+export interface PlatformStats {
+  totalUsers: number
   landlords: number
   tenants: number
   contractors: number
-  properties: number
-  units: number
-  occupiedUnits: number
-  openMaintenance: number
-  overdueInvoices: number
-  collectedThisMonth: number
-  expectedThisMonth: number
-  complianceAlerts: number
+  activeSubscriptions: number
+  mrr: number
+  arr: number
+  trialUsers: number
+  openSupport: number
 }

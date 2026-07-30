@@ -1,12 +1,11 @@
 import { NavLink } from 'react-router-dom'
 import {
-  Building2,
   ChartColumn,
+  CreditCard,
+  FileText,
   LayoutDashboard,
-  PoundSterling,
-  ShieldCheck,
+  LifeBuoy,
   Users,
-  Wrench,
 } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { cn } from '@/lib/utils'
@@ -16,20 +15,20 @@ const navItems = [
   { to: ROUTES.DASHBOARD, label: 'Overview', icon: LayoutDashboard },
   { to: ROUTES.ANALYTICS, label: 'Analytics', icon: ChartColumn },
   { to: ROUTES.USERS, label: 'Users', icon: Users },
-  { to: ROUTES.PROPERTIES, label: 'Properties', icon: Building2 },
-  { to: ROUTES.FINANCES, label: 'Finances', icon: PoundSterling },
-  { to: ROUTES.MAINTENANCE, label: 'Maintenance', icon: Wrench },
-  { to: ROUTES.COMPLIANCE, label: 'Compliance', icon: ShieldCheck },
+  { to: ROUTES.SUBSCRIPTIONS, label: 'Subscriptions', icon: CreditCard },
+  { to: ROUTES.CMS, label: 'CMS', icon: FileText },
+  { to: ROUTES.SUPPORT, label: 'Support', icon: LifeBuoy },
 ]
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white md:flex md:flex-col">
+    <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-white md:flex md:flex-col">
       <div className="border-b border-slate-100 px-5 py-5">
-        <p className="text-xs font-bold uppercase tracking-wider text-brand-600">Landlord HQ</p>
-        <h1 className="text-lg font-bold text-slate-900">{env.VITE_APP_NAME}</h1>
+        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Landlord HQ</p>
+        <h1 className="text-base font-bold text-slate-900">{env.VITE_APP_NAME}</h1>
+        <p className="mt-1 text-xs text-slate-500">Platform admin</p>
       </div>
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-0.5 p-3">
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
@@ -37,7 +36,9 @@ export function Sidebar() {
             className={({ isActive }) =>
               cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
+                isActive
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900',
               )
             }
           >
@@ -46,7 +47,7 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
-      <div className="border-t border-slate-100 p-4 text-xs text-slate-400">Platform admin · MVP</div>
+      <div className="border-t border-slate-100 p-4 text-[11px] text-slate-400">Frontend prototype · mock data</div>
     </aside>
   )
 }

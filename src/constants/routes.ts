@@ -4,10 +4,9 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   ANALYTICS: '/analytics',
   USERS: '/users',
-  PROPERTIES: '/properties',
-  FINANCES: '/finances',
-  MAINTENANCE: '/maintenance',
-  COMPLIANCE: '/compliance',
+  SUBSCRIPTIONS: '/subscriptions',
+  CMS: '/cms',
+  SUPPORT: '/support',
 } as const
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES]

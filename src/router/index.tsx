@@ -7,10 +7,9 @@ import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { AnalyticsPage } from '@/pages/dashboard/AnalyticsPage'
 import { UsersPage } from '@/pages/users/UsersPage'
-import { PropertiesPage } from '@/pages/properties/PropertiesPage'
-import { FinancesPage } from '@/pages/finances/FinancesPage'
-import { MaintenancePage } from '@/pages/maintenance/MaintenancePage'
-import { CompliancePage } from '@/pages/compliance/CompliancePage'
+import { SubscriptionsPage } from '@/pages/subscriptions/SubscriptionsPage'
+import { CmsPage } from '@/pages/cms/CmsPage'
+import { SupportPage } from '@/pages/support/SupportPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export const router = createBrowserRouter([
@@ -25,10 +24,9 @@ export const router = createBrowserRouter([
           { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
           { path: ROUTES.ANALYTICS, element: <AnalyticsPage /> },
           { path: ROUTES.USERS, element: <UsersPage /> },
-          { path: ROUTES.PROPERTIES, element: <PropertiesPage /> },
-          { path: ROUTES.FINANCES, element: <FinancesPage /> },
-          { path: ROUTES.MAINTENANCE, element: <MaintenancePage /> },
-          { path: ROUTES.COMPLIANCE, element: <CompliancePage /> },
+          { path: ROUTES.SUBSCRIPTIONS, element: <SubscriptionsPage /> },
+          { path: ROUTES.CMS, element: <CmsPage /> },
+          { path: ROUTES.SUPPORT, element: <SupportPage /> },
         ],
       },
     ],
