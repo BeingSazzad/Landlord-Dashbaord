@@ -6,7 +6,7 @@ export function DashboardPage() {
     <>
       <PageHeader
         title="Platform overview"
-        description="Users, subscriptions, revenue and support across the Landlord HQ app."
+        description="Today's snapshot — open tickets, recent billing and quick links. Charts live in Analytics."
       />
       <PlatformOverview />
     </>

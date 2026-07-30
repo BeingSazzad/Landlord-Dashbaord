@@ -20,30 +20,30 @@ export function DataTable<T extends { id: number | string }>({
 }: DataTableProps<T>) {
   if (!data.length) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+      <div className="admin-card border-dashed p-12 text-center text-sm text-slate-500">
         {emptyMessage}
       </div>
     )
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div className="admin-table-wrap">
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+        <table className="min-w-full text-left">
+          <thead>
             <tr>
               {columns.map((col) => (
-                <th key={col.key} className={`px-4 py-3 ${col.className || ''}`}>
+                <th key={col.key} className={col.className || ''}>
                   {col.header}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody>
             {data.map((row) => (
-              <tr key={row.id} className="hover:bg-slate-50/80">
+              <tr key={row.id}>
                 {columns.map((col) => (
-                  <td key={col.key} className={`px-4 py-3 text-slate-700 ${col.className || ''}`}>
+                  <td key={col.key} className={col.className || ''}>
                     {col.render(row)}
                   </td>
                 ))}

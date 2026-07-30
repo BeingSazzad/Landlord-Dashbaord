@@ -1,6 +1,8 @@
 import type {
+  AdminAccount,
   CmsPage,
   MonthlyMetric,
+  PaymentTransaction,
   PlatformStats,
   PlatformUser,
   Subscription,
@@ -9,7 +11,7 @@ import type {
 } from '@/types/api.types'
 
 export const MOCK_USERS: PlatformUser[] = [
-  { id: 0, name: 'John Smith', email: 'john@landlordhq.co.uk', role: 'landlord', status: 'active', joined: 'Jan 12, 2024', plan: 'Portfolio', mrr: 49 },
+  { id: 0, name: 'John Smith', email: 'john@landlordhq.co.uk', role: 'landlord', status: 'active', joined: 'Jan 12, 2024', propertyCount: 4, plan: 'Portfolio', mrr: 49 },
   { id: 1, name: 'Sarah Johnson', email: 'sarah.j@email.com', role: 'tenant', status: 'active', joined: 'Jan 15, 2024' },
   { id: 2, name: 'David Wilson', email: 'david.w@email.com', role: 'tenant', status: 'active', joined: 'Jun 1, 2023' },
   { id: 3, name: 'Michael Lee', email: 'michael.l@email.com', role: 'tenant', status: 'active', joined: 'Mar 10, 2024' },
@@ -18,9 +20,9 @@ export const MOCK_USERS: PlatformUser[] = [
   { id: 6, name: 'Mike Thompson', email: 'mike@plumberpro.co.uk', role: 'contractor', status: 'active', joined: 'Feb 20, 2024' },
   { id: 7, name: 'Heating Co.', email: 'jobs@heatingco.co.uk', role: 'contractor', status: 'active', joined: 'Nov 8, 2023' },
   { id: 8, name: 'Emma Roberts', email: 'emma.r@email.com', role: 'tenant', status: 'inactive', joined: 'Dec 1, 2022' },
-  { id: 9, name: 'Lisa Patel', email: 'lisa.patel@email.com', role: 'landlord', status: 'active', joined: 'Apr 3, 2025', plan: 'Pro', mrr: 19 },
-  { id: 10, name: 'Tom Wright', email: 'tom.wright@email.com', role: 'landlord', status: 'active', joined: 'May 18, 2025', plan: 'Starter', mrr: 0 },
-  { id: 11, name: 'Anna Kowalski', email: 'anna.k@email.com', role: 'landlord', status: 'active', joined: 'Jun 22, 2025', plan: 'Pro', mrr: 19 },
+  { id: 9, name: 'Lisa Patel', email: 'lisa.patel@email.com', role: 'landlord', status: 'active', joined: 'Apr 3, 2025', propertyCount: 2, plan: 'Pro', mrr: 19 },
+  { id: 10, name: 'Tom Wright', email: 'tom.wright@email.com', role: 'landlord', status: 'active', joined: 'May 18, 2025', propertyCount: 1, plan: 'Starter', mrr: 0 },
+  { id: 11, name: 'Anna Kowalski', email: 'anna.k@email.com', role: 'landlord', status: 'active', joined: 'Jun 22, 2025', propertyCount: 3, plan: 'Pro', mrr: 19 },
 ]
 
 export const MOCK_PLANS: SubscriptionPlan[] = [
@@ -54,11 +56,19 @@ export const MOCK_PLANS: SubscriptionPlan[] = [
 ]
 
 export const MOCK_SUBSCRIPTIONS: Subscription[] = [
-  { id: 0, userId: 0, userName: 'John Smith', email: 'john@landlordhq.co.uk', plan: 'Portfolio', billing: 'monthly', amount: 49, status: 'active', started: 'Jan 12, 2024', renews: 'Aug 12, 2026' },
-  { id: 1, userId: 9, userName: 'Lisa Patel', email: 'lisa.patel@email.com', plan: 'Pro', billing: 'yearly', amount: 190, status: 'active', started: 'Apr 3, 2025', renews: 'Apr 3, 2027' },
-  { id: 2, userId: 11, userName: 'Anna Kowalski', email: 'anna.k@email.com', plan: 'Pro', billing: 'monthly', amount: 19, status: 'active', started: 'Jun 22, 2025', renews: 'Jul 22, 2026' },
-  { id: 3, userId: 10, userName: 'Tom Wright', email: 'tom.wright@email.com', plan: 'Starter', billing: 'monthly', amount: 0, status: 'trial', started: 'May 18, 2025', renews: '—' },
+  { id: 0, userId: 0, userName: 'John Smith', email: 'john@landlordhq.co.uk', role: 'landlord', plan: 'Portfolio', billing: 'monthly', amount: 49, status: 'active', started: 'Jan 12, 2024', renews: 'Aug 12, 2026' },
+  { id: 1, userId: 9, userName: 'Lisa Patel', email: 'lisa.patel@email.com', role: 'landlord', plan: 'Pro', billing: 'yearly', amount: 190, status: 'active', started: 'Apr 3, 2025', renews: 'Apr 3, 2027' },
+  { id: 2, userId: 11, userName: 'Anna Kowalski', email: 'anna.k@email.com', role: 'landlord', plan: 'Pro', billing: 'monthly', amount: 19, status: 'active', started: 'Jun 22, 2025', renews: 'Jul 22, 2026' },
+  { id: 3, userId: 10, userName: 'Tom Wright', email: 'tom.wright@email.com', role: 'landlord', plan: 'Starter', billing: 'monthly', amount: 0, status: 'trial', started: 'May 18, 2025', renews: '—' },
 ]
+
+const landlordUserIds = () => new Set(MOCK_USERS.filter((u) => u.role === 'landlord').map((u) => u.id))
+
+/** Subscriptions are landlord-only — tenants and contractors never appear here */
+export function getLandlordSubscriptions(): Subscription[] {
+  const ids = landlordUserIds()
+  return MOCK_SUBSCRIPTIONS.filter((s) => s.role === 'landlord' && ids.has(s.userId))
+}
 
 export const MONTHLY_METRICS: MonthlyMetric[] = [
   { month: 'Jan', revenue: 420, users: 42, landlords: 8 },
@@ -84,14 +94,29 @@ export const MOCK_SUPPORT: SupportMessage[] = [
   { id: 3, from: 'Mike Thompson', email: 'mike@plumberpro.co.uk', role: 'contractor', subject: 'Profile verification', message: 'Submitted documents 3 days ago — any update?', status: 'closed', time: '3d ago' },
 ]
 
+export const MOCK_TRANSACTIONS: PaymentTransaction[] = [
+  { id: 0, userId: 0, userName: 'John Smith', email: 'john@landlordhq.co.uk', plan: 'Portfolio', amount: 49, billing: 'monthly', method: 'card', status: 'completed', date: 'Jul 12, 2026', reference: 'TXN-7F2A91' },
+  { id: 1, userId: 9, userName: 'Lisa Patel', email: 'lisa.patel@email.com', plan: 'Pro', amount: 190, billing: 'yearly', method: 'card', status: 'completed', date: 'Jul 3, 2026', reference: 'TXN-8B14C2' },
+  { id: 2, userId: 11, userName: 'Anna Kowalski', email: 'anna.k@email.com', plan: 'Pro', amount: 19, billing: 'monthly', method: 'card', status: 'completed', date: 'Jun 22, 2026', reference: 'TXN-3D9E55' },
+  { id: 3, userId: 0, userName: 'John Smith', email: 'john@landlordhq.co.uk', plan: 'Portfolio', amount: 49, billing: 'monthly', method: 'card', status: 'completed', date: 'Jun 12, 2026', reference: 'TXN-1A8F33' },
+  { id: 4, userId: 11, userName: 'Anna Kowalski', email: 'anna.k@email.com', plan: 'Pro', amount: 19, billing: 'monthly', method: 'bank', status: 'failed', date: 'May 22, 2026', reference: 'TXN-FAIL02' },
+  { id: 5, userId: 9, userName: 'Lisa Patel', email: 'lisa.patel@email.com', plan: 'Pro', amount: 19, billing: 'monthly', method: 'card', status: 'refunded', date: 'Apr 3, 2025', reference: 'TXN-REF881' },
+]
+
+export const MOCK_ADMINS: AdminAccount[] = [
+  { id: 'admin-0', name: 'Platform Admin', email: 'admin@landlordhq.co.uk', role: 'super', addedAt: 'Jan 1, 2024' },
+  { id: 'admin-1', name: 'Support Lead', email: 'support@landlordhq.co.uk', role: 'admin', addedAt: 'Mar 15, 2025' },
+]
+
 export function getPlatformStats(): PlatformStats {
   const landlords = MOCK_USERS.filter((u) => u.role === 'landlord').length
   const tenants = MOCK_USERS.filter((u) => u.role === 'tenant').length
   const contractors = MOCK_USERS.filter((u) => u.role === 'contractor').length
-  const activeSubscriptions = MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'active').length
-  const mrr = MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'active' && s.billing === 'monthly').reduce((s, sub) => s + sub.amount, 0)
-    + Math.round(MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'active' && s.billing === 'yearly').reduce((s, sub) => s + sub.amount, 0) / 12)
-  const trialUsers = MOCK_SUBSCRIPTIONS.filter((s) => s.status === 'trial').length
+  const subs = getLandlordSubscriptions()
+  const activeSubscriptions = subs.filter((s) => s.status === 'active').length
+  const mrr = subs.filter((s) => s.status === 'active' && s.billing === 'monthly').reduce((s, sub) => s + sub.amount, 0)
+    + Math.round(subs.filter((s) => s.status === 'active' && s.billing === 'yearly').reduce((s, sub) => s + sub.amount, 0) / 12)
+  const trialLandlords = subs.filter((s) => s.status === 'trial').length
   const openSupport = MOCK_SUPPORT.filter((m) => m.status === 'open').length
 
   return {
@@ -102,7 +127,7 @@ export function getPlatformStats(): PlatformStats {
     activeSubscriptions,
     mrr,
     arr: mrr * 12,
-    trialUsers,
+    trialLandlords,
     openSupport,
   }
 }

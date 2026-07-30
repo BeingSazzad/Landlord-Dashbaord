@@ -10,6 +10,8 @@ import { UsersPage } from '@/pages/users/UsersPage'
 import { SubscriptionsPage } from '@/pages/subscriptions/SubscriptionsPage'
 import { CmsPage } from '@/pages/cms/CmsPage'
 import { SupportPage } from '@/pages/support/SupportPage'
+import { TransactionsPage } from '@/pages/transactions/TransactionsPage'
+import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export const router = createBrowserRouter([
@@ -27,6 +29,8 @@ export const router = createBrowserRouter([
           { path: ROUTES.SUBSCRIPTIONS, element: <SubscriptionsPage /> },
           { path: ROUTES.CMS, element: <CmsPage /> },
           { path: ROUTES.SUPPORT, element: <SupportPage /> },
+          { path: ROUTES.TRANSACTIONS, element: <TransactionsPage /> },
+          { path: ROUTES.SETTINGS, element: <SettingsPage /> },
         ],
       },
     ],

@@ -1,60 +1,161 @@
+import type { ReactNode } from 'react'
 import { cn, formatMoney } from '@/lib/utils'
 
 interface BarChartProps {
   data: { label: string; value: number }[]
-  color?: string
+  barClass?: string
   formatValue?: (v: number) => string
+  accentClass?: string
 }
 
-export function BarChart({ data, color = 'bg-slate-900', formatValue = (v) => String(v) }: BarChartProps) {
-  const max = Math.max(...data.map((d) => d.value), 1)
+function roundUpNice(max: number): number {
+  if (max <= 0) return 10
+  const exp = Math.pow(10, Math.floor(Math.log10(max)))
+  const n = max / exp
+  const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10
+  return nice * exp
+}
+
+function buildTicks(max: number, count = 4): number[] {
+  const top = roundUpNice(max)
+  return Array.from({ length: count + 1 }, (_, i) => Math.round((top / count) * (count - i)))
+}
+
+export function BarChart({
+  data,
+  barClass = 'chart-bar-blue',
+  formatValue = (v) => String(v),
+  accentClass = 'text-brand-600',
+}: BarChartProps) {
+  const rawMax = Math.max(...data.map((d) => d.value), 1)
+  const chartMax = roundUpNice(rawMax)
+  const ticks = buildTicks(rawMax)
+
   return (
-    <div className="flex h-48 items-end gap-2 sm:gap-3">
-      {data.map((item) => (
-        <div key={item.label} className="flex flex-1 flex-col items-center gap-2">
-          <span className="text-[10px] font-semibold text-slate-500">{formatValue(item.value)}</span>
-          <div className="flex w-full flex-1 items-end">
-            <div
-              className={cn('w-full rounded-t-md transition-all', color)}
-              style={{ height: `${Math.max(8, (item.value / max) * 100)}%` }}
-            />
-          </div>
-          <span className="text-[11px] font-medium text-slate-500">{item.label}</span>
+    <div className="chart-body">
+      <div className="chart-grid-wrap">
+        <div className="chart-y-axis">
+          {ticks.map((tick) => (
+            <span key={tick} className="chart-y-label">
+              {formatValue(tick)}
+            </span>
+          ))}
         </div>
-      ))}
+
+        <div className="chart-plot">
+          <div className="chart-grid-lines" aria-hidden="true">
+            {ticks.map((tick) => (
+              <div key={tick} className="chart-grid-line" />
+            ))}
+          </div>
+
+          <div className="chart-bars">
+            {data.map((item, index) => {
+              const heightPct = Math.max(8, (item.value / chartMax) * 100)
+              const isLatest = index === data.length - 1
+              return (
+                <div key={item.label} className="chart-bar-col group">
+                  <span
+                    className={cn(
+                      'chart-bar-value',
+                      isLatest ? accentClass : 'text-slate-400 group-hover:text-slate-600',
+                    )}
+                  >
+                    {formatValue(item.value)}
+                  </span>
+                  <div className="chart-bar-track">
+                    <div
+                      className={cn('chart-bar-fill', barClass, isLatest && 'chart-bar-fill-active')}
+                      style={{ height: `${heightPct}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="chart-x-axis">
+        {data.map((item, index) => {
+          const isLatest = index === data.length - 1
+          return (
+            <span key={item.label} className={cn('chart-bar-label', isLatest && 'font-semibold text-brand-700')}>
+              {item.label}
+            </span>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+interface ChartCardProps {
+  title: string
+  subtitle: string
+  value: string
+  badge?: string
+  children: ReactNode
+}
+
+function ChartCard({ title, subtitle, value, badge, children }: ChartCardProps) {
+  return (
+    <div className="chart-card">
+      <div className="chart-card-header">
+        <div className="min-w-0">
+          <p className="chart-card-title">{title}</p>
+          <p className="chart-card-sub">{subtitle}</p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="chart-card-value">{value}</p>
+          {badge ? <span className="chart-card-badge">{badge}</span> : null}
+        </div>
+      </div>
+      {children}
     </div>
   )
 }
 
 export function RevenueChart({ data }: { data: { month: string; revenue: number }[] }) {
+  const latest = data[data.length - 1]?.revenue || 0
+  const prev = data[data.length - 2]?.revenue || 0
+  const growth = prev ? Math.round(((latest - prev) / prev) * 100) : 0
+
   return (
-    <div className="admin-card p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-900">Monthly revenue</h3>
-          <p className="text-xs text-slate-500">Platform subscription income</p>
-        </div>
-        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-          +18% vs last month
-        </span>
-      </div>
+    <ChartCard
+      title="Monthly revenue"
+      subtitle="Landlord subscription income"
+      value={formatMoney(latest)}
+      badge={`+${growth}%`}
+    >
       <BarChart
         data={data.map((d) => ({ label: d.month, value: d.revenue }))}
-        color="bg-slate-900"
+        barClass="chart-bar-blue"
         formatValue={(v) => formatMoney(v)}
+        accentClass="text-brand-700"
       />
-    </div>
+    </ChartCard>
   )
 }
 
 export function UserGrowthChart({ data }: { data: { month: string; users: number }[] }) {
+  const latest = data[data.length - 1]?.users || 0
+  const prev = data[data.length - 2]?.users || 0
+  const growth = prev ? Math.round(((latest - prev) / prev) * 100) : 0
+
   return (
-    <div className="admin-card p-5">
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-slate-900">User growth</h3>
-        <p className="text-xs text-slate-500">Total registered users by month</p>
-      </div>
-      <BarChart data={data.map((d) => ({ label: d.month, value: d.users }))} color="bg-blue-600" />
-    </div>
+    <ChartCard
+      title="User growth"
+      subtitle="Registered users by month"
+      value={String(latest)}
+      badge={`+${growth}%`}
+    >
+      <BarChart
+        data={data.map((d) => ({ label: d.month, value: d.users }))}
+        barClass="chart-bar-blue-light"
+        formatValue={(v) => String(v)}
+        accentClass="text-brand-600"
+      />
+    </ChartCard>
   )
 }

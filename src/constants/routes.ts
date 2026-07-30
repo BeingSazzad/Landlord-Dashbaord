@@ -7,6 +7,8 @@ export const ROUTES = {
   SUBSCRIPTIONS: '/subscriptions',
   CMS: '/cms',
   SUPPORT: '/support',
+  TRANSACTIONS: '/transactions',
+  SETTINGS: '/settings',
 } as const
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES]

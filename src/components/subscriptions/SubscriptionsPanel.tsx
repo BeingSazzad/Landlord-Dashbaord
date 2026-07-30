@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { MOCK_PLANS, MOCK_SUBSCRIPTIONS } from '@/lib/mockData'
+import { MOCK_PLANS, getLandlordSubscriptions } from '@/lib/mockData'
 import { formatMoney } from '@/lib/utils'
 import { Badge, statusTone } from '@/components/shared/Badge'
 import { DataTable } from '@/components/shared/DataTable'
@@ -12,6 +12,7 @@ import type { Subscription, SubscriptionPlan } from '@/types/api.types'
 export function SubscriptionsPanel() {
   const [tab, setTab] = useState<'active' | 'plans'>('active')
   const [showModal, setShowModal] = useState(false)
+  const landlordSubs = getLandlordSubscriptions()
 
   const subColumns = [
     { key: 'user', header: 'Landlord', render: (s: Subscription) => (
@@ -28,12 +29,15 @@ export function SubscriptionsPanel() {
     { key: 'name', header: 'Plan', render: (p: SubscriptionPlan) => <span className="font-semibold">{p.name}</span> },
     { key: 'monthly', header: 'Monthly', render: (p: SubscriptionPlan) => formatMoney(p.priceMonthly) },
     { key: 'yearly', header: 'Yearly', render: (p: SubscriptionPlan) => formatMoney(p.priceYearly) },
-    { key: 'subs', header: 'Subscribers', render: (p: SubscriptionPlan) => String(p.subscribers) },
+    { key: 'subs', header: 'Landlords', render: (p: SubscriptionPlan) => String(p.subscribers) },
     { key: 'status', header: 'Status', render: (p: SubscriptionPlan) => <Badge tone={p.active ? 'green' : 'slate'}>{p.active ? 'Active' : 'Hidden'}</Badge> },
   ]
 
   return (
     <div className="space-y-4">
+      <p className="text-sm text-slate-500">
+        Subscriptions apply to <span className="font-semibold text-slate-700">landlords only</span>. Tenants and contractors use the app for free.
+      </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex gap-2">
           {(['active', 'plans'] as const).map((t) => (
@@ -41,11 +45,9 @@ export function SubscriptionsPanel() {
               key={t}
               type="button"
               onClick={() => setTab(t)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize ${
-                tab === t ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 ring-1 ring-slate-200'
-              }`}
+              className={`admin-chip capitalize ${tab === t ? 'admin-chip-active' : 'admin-chip-inactive'}`}
             >
-              {t === 'active' ? 'Active subscriptions' : 'Plans'}
+              {t === 'active' ? 'Landlord subscriptions' : 'Landlord plans'}
             </button>
           ))}
         </div>
@@ -56,11 +58,11 @@ export function SubscriptionsPanel() {
         ) : null}
       </div>
       {tab === 'active' ? (
-        <DataTable columns={subColumns} data={MOCK_SUBSCRIPTIONS} />
+        <DataTable columns={subColumns} data={landlordSubs} />
       ) : (
         <DataTable columns={planColumns} data={MOCK_PLANS} />
       )}
-      <Modal open={showModal} title="Add subscription plan" onClose={() => setShowModal(false)}
+      <Modal open={showModal} title="Add landlord plan" onClose={() => setShowModal(false)}
         footer={<Button fullWidth onClick={() => setShowModal(false)}>Save plan (demo)</Button>}>
         <div className="space-y-3">
           <Input label="Plan name" placeholder="e.g. Business" />

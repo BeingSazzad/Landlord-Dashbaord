@@ -28,7 +28,7 @@ export function statusTone(status: string): Tone {
   const s = status.toLowerCase()
   if (['active', 'paid', 'done', 'completed'].includes(s)) return 'green'
   if (['pending', 'progress', 'partial'].includes(s)) return 'amber'
-  if (['overdue', 'inactive', 'open'].includes(s)) return s === 'open' ? 'amber' : 'red'
+  if (['overdue', 'inactive', 'open', 'banned', 'failed'].includes(s)) return s === 'open' ? 'amber' : 'red'
   if (['high'].includes(s)) return 'red'
   return 'slate'
 }

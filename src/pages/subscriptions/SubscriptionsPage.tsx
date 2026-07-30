@@ -4,7 +4,10 @@ import { SubscriptionsPanel } from '@/components/subscriptions/SubscriptionsPane
 export function SubscriptionsPage() {
   return (
     <>
-      <PageHeader title="Subscriptions" description="Who is paying, which plan, and manage pricing tiers." />
+      <PageHeader
+        title="Landlord subscriptions"
+        description="Billing and plans for landlords only — tenants and contractors are never charged."
+      />
       <SubscriptionsPanel />
     </>
   )

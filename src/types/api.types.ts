@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string
   name: string
   role: UserRole
+  avatarUrl?: string
 }
 
 export interface LoginRequest {
@@ -24,6 +25,9 @@ export interface PlatformUser {
   role: UserRole
   status: Status
   joined: string
+  /** Landlords only — how many properties they added */
+  propertyCount?: number
+  /** Landlord-only — tenants and contractors do not subscribe */
   plan?: string
   mrr?: number
 }
@@ -35,14 +39,17 @@ export interface SubscriptionPlan {
   priceYearly: number
   features: string[]
   active: boolean
+  /** Number of landlords on this plan */
   subscribers: number
 }
 
+/** Landlord subscription — tenants and contractors are never billed */
 export interface Subscription {
   id: number
   userId: number
   userName: string
   email: string
+  role: 'landlord'
   plan: string
   billing: 'monthly' | 'yearly'
   amount: number
@@ -76,6 +83,8 @@ export interface SupportMessage {
   message: string
   status: 'open' | 'replied' | 'closed'
   time: string
+  reply?: string
+  repliedAt?: string
 }
 
 export interface PlatformStats {
@@ -86,6 +95,29 @@ export interface PlatformStats {
   activeSubscriptions: number
   mrr: number
   arr: number
-  trialUsers: number
+  trialLandlords: number
   openSupport: number
+}
+
+export interface PaymentTransaction {
+  id: number
+  userId: number
+  userName: string
+  email: string
+  plan: string
+  amount: number
+  billing: 'monthly' | 'yearly'
+  method: 'card' | 'bank'
+  status: 'completed' | 'failed' | 'refunded'
+  date: string
+  reference: string
+}
+
+export interface AdminAccount {
+  id: string
+  name: string
+  email: string
+  role: 'super' | 'admin'
+  addedAt: string
+  avatarUrl?: string
 }

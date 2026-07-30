@@ -4,7 +4,7 @@ import { AnalyticsPanel } from '@/components/analytics/AnalyticsPanel'
 export function AnalyticsPage() {
   return (
     <>
-      <PageHeader title="Analytics" description="Monthly revenue, user growth and landlord sign-ups." />
+      <PageHeader title="Analytics" description="Deep dive — revenue charts, user growth, plan mix and monthly trends." />
       <AnalyticsPanel />
     </>
   )
