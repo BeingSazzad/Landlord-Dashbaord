@@ -1,6 +1,10 @@
 import type { FormEvent } from 'react'
 import { Link } from 'react-router-dom'
-import { Building2, Shield } from 'lucide-react'
+import {
+  Building2,
+  Lock,
+  ShieldCheck,
+} from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -16,29 +20,60 @@ interface LoginFormProps {
 export function LoginForm({ onSubmit, loading, error, demoHint }: LoginFormProps) {
   return (
     <div className="login-split">
-      <aside className="login-brand">
-        <div className="login-brand-glow" aria-hidden="true" />
-        <div className="relative z-10">
-          <div className="mb-8 flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
-              <Building2 className="h-6 w-6" />
+      {/* Left Branding Side with Image & Gradient Overlay */}
+      <aside className="relative hidden w-[48%] flex-col justify-between overflow-hidden p-10 xl:p-14 text-white lg:flex">
+        {/* Background Property Image */}
+        <img
+          src="/login-bg.jpg"
+          alt="UK Modern Residential Architecture"
+          className="absolute inset-0 h-full w-full object-cover object-center scale-105"
+        />
+
+        {/* Deep Sapphire Gradient Overlay for optimal legibility & depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-blue-950/80 to-brand-900/75 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-blue-600/20 backdrop-blur-[1.5px]" />
+        <div className="absolute inset-0 bg-black/25" />
+
+        {/* Top Header */}
+        <div className="relative z-10 flex items-center">
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur-md border border-white/20 shadow-lg">
+              <Building2 className="h-6 w-6 text-white" />
             </span>
             <div>
-              <p className="text-lg font-bold">Landlord HQ</p>
-              <p className="text-xs font-medium text-white/70">ADMIN PORTAL</p>
+              <p className="text-lg font-extrabold tracking-tight">Landlord HQ</p>
+              <p className="text-[11px] font-bold tracking-widest text-blue-200 uppercase">
+                ADMIN PORTAL
+              </p>
             </div>
           </div>
-          <h1 className="text-3xl font-bold leading-tight">Welcome back</h1>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/80">
-            Manage users, subscriptions, app content and support — all in one platform dashboard.
+        </div>
+
+        {/* Center / Middle Content (Clean, elegant, clutter-free typography) */}
+        <div className="relative z-10 my-auto max-w-lg py-12">
+          <h1 className="text-4xl xl:text-5xl font-extrabold leading-[1.15] text-white tracking-tight">
+            Manage Tenancy, Compliance &amp; Portfolios
+          </h1>
+
+          <p className="mt-5 text-base xl:text-lg leading-relaxed text-blue-100/90 font-medium">
+            Manage users, subscriptions, app content and support — all in one unified platform dashboard.
           </p>
         </div>
-        <div className="relative z-10 flex items-center gap-2 text-xs text-white/60">
-          <Shield className="h-4 w-4" />
-          Restricted to authorized administrators only
+
+        {/* Footer Security Badges */}
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-5 border-t border-white/15 text-xs text-blue-200/80">
+          <div className="flex items-center gap-2 font-medium">
+            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+            <span>Restricted to authorized administrators only</span>
+          </div>
+          <div className="flex items-center gap-1.5 font-mono text-[11px] text-blue-300/70">
+            <Lock className="h-3 w-3" />
+            <span>256-bit TLS Encrypted</span>
+          </div>
         </div>
       </aside>
 
+      {/* Right Login Form Side */}
       <div className="login-form-side">
         <div className="login-form-card">
           <div className="mb-6 lg:hidden">
