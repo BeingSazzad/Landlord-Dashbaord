@@ -6,7 +6,7 @@ export function DashboardPage() {
     <>
       <PageHeader
         title="Overview"
-        description="Platform metrics, landlord subscriptions, and support activity."
+        description="High-level platform metrics, tenant activity, and revenue breakdown."
       />
       <PlatformOverview />
     </>
