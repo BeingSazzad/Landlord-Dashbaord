@@ -8,7 +8,6 @@ export const ROUTES = {
   SUBSCRIPTIONS: '/subscriptions',
   CMS: '/cms',
   SUPPORT: '/support',
-  SUPPORT_TICKET: '/support/:ticketId',
   TRANSACTIONS: '/transactions',
   SETTINGS: '/settings',
 } as const
