@@ -4,7 +4,10 @@ import { UsersTable } from '@/components/users/UsersTable'
 export function UsersPage() {
   return (
     <>
-      <PageHeader title="Users" description="Landlords, tenants and contractors on the platform." />
+      <PageHeader
+        title="User Directory"
+        description="Search, manage and monitor landlords, tenants and approved contractors across the platform."
+      />
       <UsersTable />
     </>
   )

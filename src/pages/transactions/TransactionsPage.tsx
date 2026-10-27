@@ -6,7 +6,7 @@ export function TransactionsPage() {
     <>
       <PageHeader
         title="Transactions"
-        description="Landlord subscription payments — who paid, which plan, and payment status."
+        description="Real-time log of subscription revenue, settlements, and payment statuses."
       />
       <TransactionsTable />
     </>

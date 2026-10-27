@@ -5,8 +5,8 @@ export function SubscriptionsPage() {
   return (
     <>
       <PageHeader
-        title="Landlord subscriptions"
-        description="Billing and plans for landlords only — tenants and contractors are never charged."
+        title="Subscriptions & Plans"
+        description="Manage landlord subscription packages, pricing tiers, and active memberships."
       />
       <SubscriptionsPanel />
     </>

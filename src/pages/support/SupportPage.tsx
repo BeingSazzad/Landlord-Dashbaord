@@ -4,7 +4,10 @@ import { SupportInbox } from '@/components/support/SupportInbox'
 export function SupportPage() {
   return (
     <>
-      <PageHeader title="Support" description="Reply to tickets — demo sends update in-app only (no real email)." />
+      <PageHeader
+        title="Support Helpdesk"
+        description="Manage incoming platform inquiries, tenant issues, and landlord assistance requests."
+      />
       <SupportInbox />
     </>
   )

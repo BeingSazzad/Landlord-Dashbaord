@@ -9,6 +9,8 @@ import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import type { Subscription, SubscriptionPlan } from '@/types/api.types'
 
+import { cn } from '@/lib/utils'
+
 export function SubscriptionsPanel() {
   const [tab, setTab] = useState<'active' | 'plans'>('active')
   const [showModal, setShowModal] = useState(false)
@@ -26,34 +28,40 @@ export function SubscriptionsPanel() {
   ]
 
   const planColumns = [
-    { key: 'name', header: 'Plan', render: (p: SubscriptionPlan) => <span className="font-semibold">{p.name}</span> },
-    { key: 'monthly', header: 'Monthly', render: (p: SubscriptionPlan) => formatMoney(p.priceMonthly) },
-    { key: 'yearly', header: 'Yearly', render: (p: SubscriptionPlan) => formatMoney(p.priceYearly) },
+    { key: 'name', header: 'Plan', render: (p: SubscriptionPlan) => <span className="font-semibold text-slate-900">{p.name}</span> },
+    { key: 'monthly', header: 'Monthly', render: (p: SubscriptionPlan) => <span className="font-semibold text-slate-900">{formatMoney(p.priceMonthly)}</span> },
+    { key: 'yearly', header: 'Yearly', render: (p: SubscriptionPlan) => <span className="font-semibold text-slate-900">{formatMoney(p.priceYearly)}</span> },
     { key: 'subs', header: 'Landlords', render: (p: SubscriptionPlan) => String(p.subscribers) },
-    { key: 'status', header: 'Status', render: (p: SubscriptionPlan) => <Badge tone={p.active ? 'green' : 'slate'}>{p.active ? 'Active' : 'Hidden'}</Badge> },
+    { key: 'status', header: 'Status', render: (p: SubscriptionPlan) => (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-100">
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+        {p.active ? 'Active' : 'Hidden'}
+      </span>
+    )},
   ]
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-slate-500">
-        Subscriptions apply to <span className="font-semibold text-slate-700">landlords only</span>. Tenants and contractors use the app for free.
-      </p>
+    <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          {(['active', 'plans'] as const).map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={`admin-chip capitalize ${tab === t ? 'admin-chip-active' : 'admin-chip-inactive'}`}
-            >
-              {t === 'active' ? 'Landlord subscriptions' : 'Landlord plans'}
-            </button>
-          ))}
+        <div className="segmented-track">
+          <button
+            type="button"
+            onClick={() => setTab('active')}
+            className={cn('segmented-item', tab === 'active' ? 'segmented-item-active' : 'segmented-item-inactive')}
+          >
+            Landlord Subscriptions
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('plans')}
+            className={cn('segmented-item', tab === 'plans' ? 'segmented-item-active' : 'segmented-item-inactive')}
+          >
+            Package Plans
+          </button>
         </div>
         {tab === 'plans' ? (
           <Button onClick={() => setShowModal(true)}>
-            <Plus className="h-4 w-4" /> Add plan
+            <Plus className="h-4 w-4" /> Add Plan
           </Button>
         ) : null}
       </div>
