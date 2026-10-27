@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  AlertTriangle,
   Building2,
   CheckCircle2,
   ChevronLeft,
@@ -315,14 +314,10 @@ export function SupportInbox() {
           <button
             type="button"
             onClick={() => setActiveTab('reports')}
-            className={cn(
-              'segmented-item flex items-center gap-1.5',
-              activeTab === 'reports' ? 'segmented-item-active text-red-600' : 'segmented-item-inactive'
-            )}
+            className={cn('segmented-item', activeTab === 'reports' ? 'segmented-item-active' : 'segmented-item-inactive')}
           >
-            <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
             Reports
-            <span className="rounded-full bg-red-50 text-red-600 px-1.5 py-0.2 text-[10px] font-bold border border-red-100">
+            <span className="rounded-full bg-slate-100 text-slate-600 px-1.5 py-0.2 text-[10px] font-medium ml-1.5">
               {counts.reports}
             </span>
           </button>
@@ -333,7 +328,7 @@ export function SupportInbox() {
             className={cn('segmented-item', activeTab === 'open' ? 'segmented-item-active' : 'segmented-item-inactive')}
           >
             Open
-            <span className="rounded-full bg-amber-50 text-amber-700 px-1.5 py-0.2 text-[10px] font-bold border border-amber-200/60 ml-1.5">
+            <span className="rounded-full bg-slate-100 text-slate-600 px-1.5 py-0.2 text-[10px] font-medium ml-1.5">
               {counts.open}
             </span>
           </button>
@@ -374,7 +369,7 @@ export function SupportInbox() {
         </div>
       </div>
 
-      {/* Main Tickets Table matching media_1793079576247.png */}
+      {/* Main Tickets Table */}
       <div className="admin-table-wrap">
         <table className="min-w-full text-left">
           <thead>
@@ -401,18 +396,11 @@ export function SupportInbox() {
                     {t.ticketCode}
                   </td>
 
-                  {/* SUBJECT WITH OPTIONAL REPORT TAG */}
+                  {/* SUBJECT */}
                   <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-2">
-                      {t.isReport && (
-                        <span className="rounded border border-red-200 bg-red-50/80 px-1.5 py-0.5 text-[10px] font-bold text-red-600">
-                          Report
-                        </span>
-                      )}
-                      <span className="text-sm font-bold text-slate-900 hover:text-brand-600 transition">
-                        {t.subject}
-                      </span>
-                    </div>
+                    <span className="text-sm font-semibold text-slate-900 hover:text-brand-600 transition">
+                      {t.subject}
+                    </span>
                   </td>
 
                   {/* USER */}
@@ -428,45 +416,26 @@ export function SupportInbox() {
                     {t.category}
                   </td>
 
-                  {/* PRIORITY BADGE */}
-                  <td className="py-3.5 px-4">
-                    {t.priority === 'urgent' && (
-                      <span className="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-red-600 uppercase">
-                        URGENT
-                      </span>
-                    )}
-                    {t.priority === 'high' && (
-                      <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-amber-700 uppercase">
-                        HIGH
-                      </span>
-                    )}
-                    {t.priority === 'normal' && (
-                      <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-slate-600 uppercase">
-                        NORMAL
-                      </span>
-                    )}
+                  {/* PRIORITY - Clean, subtle typography without loud pill boxes */}
+                  <td className="py-3.5 px-4 text-xs font-medium text-slate-600 capitalize">
+                    {t.priority}
                   </td>
 
-                  {/* STATUS BADGE WITH LIVE DOT */}
+                  {/* STATUS - Clean, subtle live dot and typography */}
                   <td className="py-3.5 px-4">
-                    {t.status === 'open' && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/90 bg-amber-50/80 px-2.5 py-0.5 text-xs font-bold text-amber-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-                        OPEN
-                      </span>
-                    )}
-                    {t.status === 'in_progress' && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200/90 bg-blue-50/80 px-2.5 py-0.5 text-xs font-bold text-brand-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />
-                        IN PROGRESS
-                      </span>
-                    )}
-                    {t.status === 'resolved' && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/90 bg-emerald-50/80 px-2.5 py-0.5 text-xs font-bold text-emerald-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                        RESOLVED
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700 capitalize">
+                      <span
+                        className={cn(
+                          'h-1.5 w-1.5 rounded-full',
+                          t.status === 'resolved'
+                            ? 'bg-emerald-500'
+                            : t.status === 'in_progress'
+                              ? 'bg-blue-500'
+                              : 'bg-amber-500'
+                        )}
+                      />
+                      {t.status.replace('_', ' ')}
+                    </div>
                   </td>
 
                   {/* ACTION VIEW BUTTON */}

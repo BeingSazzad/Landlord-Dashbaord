@@ -123,7 +123,7 @@ export const MOCK_USERS: PlatformUser[] = [
   },
   {
     id: 8,
-    name: 'Emma Roberts (In-Transit Renter)',
+    name: 'Emma Roberts',
     email: 'emma.r@email.com',
     role: 'tenant',
     status: 'active',

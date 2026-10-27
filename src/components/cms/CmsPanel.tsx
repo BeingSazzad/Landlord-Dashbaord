@@ -21,7 +21,6 @@ import {
   Redo2,
   Save,
   Search,
-  Shield,
   Trash2,
   Undo2,
   Upload,
@@ -31,7 +30,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 
-type CmsTab = 'pages' | 'faqs' | 'branding' | 'partners'
+type CmsTab = 'pages' | 'faqs' | 'branding'
 type FaqAudience = 'landlords' | 'tenants' | 'contractors'
 
 interface PolicyDocument {
@@ -188,74 +187,17 @@ export function CmsPanel() {
   const [editingPolicy, setEditingPolicy] = useState<PolicyDocument | null>(null)
   const [policyContent, setPolicyContent] = useState<string>('')
 
-  // Identity & Branding State (replacing color palette cards as requested)
+  // Identity & Branding State
   const [platformName, setPlatformName] = useState('Landlord HQ')
   const [tagline, setTagline] = useState('UK Property Management & Tenancy Compliance Platform')
   const [supportEmail, setSupportEmail] = useState('compliance@landlordhq.co.uk')
-  const [websiteUrl, setWebsiteUrl] = useState('https://landlordhq.co.uk')
+  const [contactNumber, setContactNumber] = useState('+44 20 7946 0912')
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
     setToastMessage(msg)
     window.setTimeout(() => setToastMessage(null), 3000)
   }
-
-  // UK Compliance Partners State
-  const [partners, setPartners] = useState([
-    {
-      id: 'p-1',
-      name: 'Deposit Protection Service (DPS)',
-      type: 'Statutory Tenancy Deposit Custodial',
-      status: 'Integrated API',
-      active: true,
-      regCode: 'DPS-UK-7721',
-    },
-    {
-      id: 'p-2',
-      name: 'National Residential Landlords Association',
-      type: 'NRLA UK Accreditation Partner',
-      status: 'Verified Partner',
-      active: true,
-      regCode: 'NRLA-CORP-902',
-    },
-    {
-      id: 'p-3',
-      name: 'Gas Safe Register UK',
-      type: 'Statutory CP12 Verification Engine',
-      status: 'Active Feed',
-      active: true,
-      regCode: 'GSR-API-4410',
-    },
-    {
-      id: 'p-4',
-      name: 'PropertyMark Protected',
-      type: 'Letting & Management Standard',
-      status: 'Compliant',
-      active: true,
-      regCode: 'PMP-STD-551',
-    },
-    {
-      id: 'p-5',
-      name: 'NICEIC Electrical Safety',
-      type: 'EICR Inspector Verification Network',
-      status: 'Active Feed',
-      active: true,
-      regCode: 'NICEIC-REG-109',
-    },
-    {
-      id: 'p-6',
-      name: 'Tenancy Deposit Scheme (TDS)',
-      type: 'Alternative Deposit Insurance Partner',
-      status: 'Active Link',
-      active: true,
-      regCode: 'TDS-INS-338',
-    },
-  ])
-  const [isAddingPartner, setIsAddingPartner] = useState<boolean>(false)
-  const [newPartnerName, setNewPartnerName] = useState('')
-  const [newPartnerType, setNewPartnerType] = useState('')
-  const [newPartnerCode, setNewPartnerCode] = useState('')
-  const [newPartnerStatus, setNewPartnerStatus] = useState('Verified Partner')
 
   // FAQs state
   const [faqs, setFaqs] = useState<FaqItem[]>(INITIAL_FAQS)
@@ -423,20 +365,6 @@ export function CmsPanel() {
           >
             <Palette className="h-4 w-4" />
             Branding
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('partners')}
-            className={cn(
-              'flex items-center gap-2 border-b-2 py-4 text-sm font-bold transition',
-              activeTab === 'partners'
-                ? 'border-brand-600 text-brand-600'
-                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800'
-            )}
-          >
-            <Shield className="h-4 w-4" />
-            Trusted By
           </button>
         </nav>
       </div>
@@ -930,50 +858,47 @@ export function CmsPanel() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700">Public Platform URL</label>
+                <label className="text-xs font-bold text-slate-700">Official Contact Number</label>
                 <input
-                  type="url"
-                  value={websiteUrl}
-                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  type="tel"
+                  value={contactNumber}
+                  onChange={(e) => setContactNumber(e.target.value)}
                   className="admin-input w-full mt-1.5 text-xs font-medium"
-                  placeholder="e.g. https://landlordhq.co.uk"
+                  placeholder="e.g. +44 20 7946 0912"
                 />
-                <p className="text-[11px] text-slate-400 mt-1">Canonical web domain for landlord and tenant portal access</p>
+                <p className="text-[11px] text-slate-400 mt-1">Official support hotline for landlords, tenants, and contractors</p>
               </div>
             </div>
           </div>
 
-          {/* Official Logos & Brand Marks */}
+          {/* Official Brand Logo (Clean single logo card) */}
           <div className="admin-card p-6">
-            <h3 className="text-base font-bold text-slate-900">Official Brand Logos & Assets</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Manage logo marks for web application, mobile app, and PDF contracts</p>
+            <h3 className="text-base font-bold text-slate-900">Official Brand Logo</h3>
+            <p className="text-xs text-slate-500 mt-0.5">Platform logo used across the header, navigation, and PDF agreements</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
-              {/* Primary Web Logo */}
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-5 flex flex-col justify-between shadow-2xs">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-brand-700 border border-blue-100">
-                      PRIMARY LOGO
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-400">SVG · 24 KB</span>
-                  </div>
+            <div className="max-w-md mt-5">
+              <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-brand-700 border border-blue-100">
+                    PRIMARY LOGO
+                  </span>
+                  <span className="text-[11px] font-mono text-slate-400">SVG · 24 KB</span>
+                </div>
 
-                  <div className="my-5 flex items-center justify-center h-24 rounded-xl border border-slate-100 bg-slate-50/60 p-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white font-bold shadow-xs">
-                        <Building2 className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <span className="text-base font-bold tracking-tight text-slate-900">Landlord</span>
-                        <span className="text-base font-bold tracking-tight text-brand-600 ml-1">HQ</span>
-                      </div>
+                <div className="my-5 flex items-center justify-center h-24 rounded-xl border border-slate-100 bg-slate-50/60 p-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-600 text-white font-bold shadow-xs">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <span className="text-base font-bold tracking-tight text-slate-900">Landlord</span>
+                      <span className="text-base font-bold tracking-tight text-brand-600 ml-1">HQ</span>
                     </div>
                   </div>
-
-                  <h4 className="text-xs font-bold text-slate-900">Topbar & Contract Header Logo</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Used on light backgrounds and PDF tenancy agreements</p>
                 </div>
+
+                <h4 className="text-xs font-bold text-slate-900">Topbar & Contract Header Logo</h4>
+                <p className="text-[11px] text-slate-500 mt-0.5">Used on light backgrounds and PDF tenancy agreements</p>
 
                 <div className="mt-5 flex items-center gap-2 pt-3 border-t border-slate-100">
                   <button
@@ -994,256 +919,10 @@ export function CmsPanel() {
                   </button>
                 </div>
               </div>
-
-              {/* Navy Contrast Mark */}
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-5 flex flex-col justify-between shadow-2xs">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 border border-slate-200">
-                      NAVY MARK
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-400">SVG · 22 KB</span>
-                  </div>
-
-                  <div className="my-5 flex items-center justify-center h-24 rounded-xl bg-slate-900 p-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 text-white font-bold shadow-xs">
-                        <Building2 className="h-5 w-5" />
-                      </div>
-                      <span className="text-base font-bold text-white tracking-tight">Landlord HQ</span>
-                    </div>
-                  </div>
-
-                  <h4 className="text-xs font-bold text-slate-900">Dark Navy Contractor Mark</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">High-contrast logo for contractor mobile app and splash screens</p>
-                </div>
-
-                <div className="mt-5 flex items-center gap-2 pt-3 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => showToast('Navy mark update prompt opened.')}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Replace Mark
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => showToast('Navy mark asset URL copied.')}
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition cursor-pointer"
-                    title="Copy Asset URL"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Mobile App Icon & Favicon */}
-              <div className="rounded-2xl border border-slate-200/90 bg-white p-5 flex flex-col justify-between shadow-2xs">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-100">
-                      APP ICON & FAVICON
-                    </span>
-                    <span className="text-[11px] font-mono text-slate-400">PNG · 512×512</span>
-                  </div>
-
-                  <div className="my-5 flex items-center justify-center h-24 rounded-xl border border-slate-100 bg-slate-50/60 p-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white border-2 border-brand-600 shadow-md">
-                      <Building2 className="h-7 w-7 text-brand-600" />
-                    </div>
-                  </div>
-
-                  <h4 className="text-xs font-bold text-slate-900">App Store & Browser Favicon</h4>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Square icon for Apple App Store, Google Play, and browser tab icon</p>
-                </div>
-
-                <div className="mt-5 flex items-center gap-2 pt-3 border-t border-slate-100">
-                  <button
-                    type="button"
-                    onClick={() => showToast('App icon update prompt opened.')}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
-                  >
-                    <Upload className="h-3.5 w-3.5" />
-                    Replace Icon
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => showToast('App icon asset URL copied.')}
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition cursor-pointer"
-                    title="Copy Asset URL"
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       )}
-
-      {/* TAB 4: TRUSTED PARTNERS VIEW (Matching media_1793082270884.png) */}
-      {activeTab === 'partners' && (
-        <div className="admin-card p-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
-            <div>
-              <h3 className="text-base font-bold text-slate-900">UK Industry Accreditations & Compliance Partners</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Authorised regulatory schemes integrated with Landlord HQ</p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setNewPartnerName('')
-                setNewPartnerType('')
-                setNewPartnerCode('')
-                setIsAddingPartner(true)
-              }}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-brand-700 cursor-pointer"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add Partner Scheme
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4.5 mt-6">
-            {partners.map((partner) => (
-              <div
-                key={partner.id}
-                className="rounded-2xl border border-slate-200/90 bg-white p-5 flex flex-col justify-between shadow-2xs hover:shadow-xs transition"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 border border-emerald-100">
-                      {partner.status}
-                    </span>
-                    <Shield className="h-4 w-4 text-brand-600" />
-                  </div>
-
-                  <h4 className="text-sm font-bold text-slate-900 mt-3">{partner.name}</h4>
-                  <p className="text-xs text-slate-500 mt-1 leading-snug">{partner.type}</p>
-
-                  <div className="mt-4 flex items-center justify-between rounded-lg bg-slate-50/80 px-3 py-2 text-xs">
-                    <span className="text-[11px] font-medium text-slate-400">Reg ID:</span>
-                    <span className="font-mono text-xs font-bold text-slate-700">{partner.regCode}</span>
-                  </div>
-                </div>
-
-                <div className="mt-5 flex items-center justify-between pt-3 border-t border-slate-100">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-medium text-slate-500">Live Sync:</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={partner.active}
-                        onChange={() => {
-                          setPartners((prev) =>
-                            prev.map((p) => (p.id === partner.id ? { ...p, active: !p.active } : p))
-                          )
-                          showToast(`${partner.name} status updated.`)
-                        }}
-                        className="sr-only peer"
-                      />
-                      <div className="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => showToast(`Sync verification for ${partner.name} passed with 0 errors.`)}
-                    className="text-xs font-bold text-brand-600 hover:text-brand-700 hover:underline cursor-pointer"
-                  >
-                    Verify API →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Modal for Adding New Partner Scheme */}
-      <Modal
-        open={isAddingPartner}
-        title="Add UK Compliance Partner Scheme"
-        onClose={() => setIsAddingPartner(false)}
-        footer={
-          <div className="flex gap-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsAddingPartner(false)}>
-              Cancel
-            </Button>
-            <Button
-              fullWidth
-              onClick={() => {
-                if (!newPartnerName.trim() || !newPartnerType.trim()) return
-                const newP = {
-                  id: `p-${Date.now()}`,
-                  name: newPartnerName.trim(),
-                  type: newPartnerType.trim(),
-                  status: newPartnerStatus,
-                  active: true,
-                  regCode: newPartnerCode.trim() || `UK-SCHEME-${Math.floor(1000 + Math.random() * 9000)}`,
-                }
-                setPartners((prev) => [...prev, newP])
-                setIsAddingPartner(false)
-                showToast(`Partner scheme ${newP.name} added successfully.`)
-              }}
-              className="!bg-brand-600 hover:!bg-brand-700"
-            >
-              Add Partner
-            </Button>
-          </div>
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs font-bold text-slate-700">Partner Scheme Name</label>
-            <input
-              type="text"
-              className="admin-input w-full mt-1.5"
-              placeholder="e.g. MyDeposits UK Custodial Scheme"
-              value={newPartnerName}
-              onChange={(e) => setNewPartnerName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700">Standard / Description</label>
-            <input
-              type="text"
-              className="admin-input w-full mt-1.5"
-              placeholder="e.g. Statutory Tenancy Deposit Custodial Engine"
-              value={newPartnerType}
-              onChange={(e) => setNewPartnerType(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700">Registration / API ID</label>
-            <input
-              type="text"
-              className="admin-input w-full mt-1.5 font-mono"
-              placeholder="e.g. MYDEP-REG-8820"
-              value={newPartnerCode}
-              onChange={(e) => setNewPartnerCode(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700">Integration Status</label>
-            <select
-              value={newPartnerStatus}
-              onChange={(e) => setNewPartnerStatus(e.target.value)}
-              className="admin-input w-full mt-1.5"
-            >
-              <option value="Integrated API">Integrated API</option>
-              <option value="Verified Partner">Verified Partner</option>
-              <option value="Active Feed">Active Feed</option>
-              <option value="Compliant">Compliant</option>
-            </select>
-          </div>
-        </div>
-      </Modal>
 
       {/* Modal for Adding / Editing FAQ */}
       <Modal

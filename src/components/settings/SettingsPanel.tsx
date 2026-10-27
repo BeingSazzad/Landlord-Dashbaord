@@ -43,11 +43,9 @@ export function SettingsPanel() {
 
   // Notifications State for Landlord HQ
   const [notifications, setNotifications] = useState({
-    rentAlerts: true,
-    complianceExpiries: true,
-    supportEscalations: true,
-    depositNotices: true,
-    monthlyDigest: false,
+    emailAlerts: true,
+    securityAlerts: true,
+    weeklyDigest: false,
   })
 
   const flash = (msg: string) => {
@@ -299,90 +297,56 @@ export function SettingsPanel() {
         <div className="space-y-6 max-w-2xl">
           <div className="admin-card p-6 sm:p-7 space-y-6">
             <div>
-              <h3 className="text-base font-bold text-slate-900">Platform Notification Preferences</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Configure automated email and administrative alert dispatches</p>
+              <h3 className="text-base font-bold text-slate-900">Notification Preferences</h3>
+              <p className="text-xs text-slate-500 mt-0.5">Manage your notification settings</p>
             </div>
 
             <div className="space-y-5 divide-y divide-slate-100">
-              {/* Alert 1: Rent Collection */}
+              {/* Alert 1: Email Notifications */}
               <div className="flex items-center justify-between pt-1">
                 <div className="space-y-0.5 pr-4">
-                  <p className="text-sm font-bold text-slate-900">Rent Collection & Payout Alerts</p>
-                  <p className="text-xs text-slate-500">Instant notification when tenant rent clears escrow into landlord account</p>
+                  <p className="text-sm font-semibold text-slate-900">Email Notifications</p>
+                  <p className="text-xs text-slate-500">Receive important updates and platform activity alerts</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={notifications.rentAlerts}
-                    onChange={(e) => setNotifications((p) => ({ ...p, rentAlerts: e.target.checked }))}
+                    checked={notifications.emailAlerts}
+                    onChange={(e) => setNotifications((p) => ({ ...p, emailAlerts: e.target.checked }))}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
                 </label>
               </div>
 
-              {/* Alert 2: Compliance Expiries */}
+              {/* Alert 2: Security & Login Alerts */}
               <div className="flex items-center justify-between pt-4">
                 <div className="space-y-0.5 pr-4">
-                  <p className="text-sm font-bold text-slate-900">Statutory Compliance Expiries (CP12 & EICR)</p>
-                  <p className="text-xs text-slate-500">30-day and 7-day advance warnings for landlord property safety certificates</p>
+                  <p className="text-sm font-semibold text-slate-900">Security & Login Alerts</p>
+                  <p className="text-xs text-slate-500">Get notified of new sign-ins and security-related changes</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={notifications.complianceExpiries}
-                    onChange={(e) => setNotifications((p) => ({ ...p, complianceExpiries: e.target.checked }))}
+                    checked={notifications.securityAlerts}
+                    onChange={(e) => setNotifications((p) => ({ ...p, securityAlerts: e.target.checked }))}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
                 </label>
               </div>
 
-              {/* Alert 3: Dispute & Support */}
+              {/* Alert 3: Weekly Digest */}
               <div className="flex items-center justify-between pt-4">
                 <div className="space-y-0.5 pr-4">
-                  <p className="text-sm font-bold text-slate-900">Tenant Dispute & Urgent Escalations</p>
-                  <p className="text-xs text-slate-500">High-priority push alert when maintenance dispute or urgent inquiry is filed</p>
+                  <p className="text-sm font-semibold text-slate-900">Weekly Activity Digest</p>
+                  <p className="text-xs text-slate-500">A weekly summary of key platform metrics and activity</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
                     type="checkbox"
-                    checked={notifications.supportEscalations}
-                    onChange={(e) => setNotifications((p) => ({ ...p, supportEscalations: e.target.checked }))}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
-                </label>
-              </div>
-
-              {/* Alert 4: Deposit Notices */}
-              <div className="flex items-center justify-between pt-4">
-                <div className="space-y-0.5 pr-4">
-                  <p className="text-sm font-bold text-slate-900">Custodial Tenancy Deposit Notices</p>
-                  <p className="text-xs text-slate-500">API integration status confirmation from DPS and TDS custodial registries</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notifications.depositNotices}
-                    onChange={(e) => setNotifications((p) => ({ ...p, depositNotices: e.target.checked }))}
-                    className="sr-only peer"
-                  />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>
-                </label>
-              </div>
-
-              {/* Alert 5: Monthly MRR Digest */}
-              <div className="flex items-center justify-between pt-4">
-                <div className="space-y-0.5 pr-4">
-                  <p className="text-sm font-bold text-slate-900">Monthly Executive MRR Digest</p>
-                  <p className="text-xs text-slate-500">Automated financial overview and subscriber retention ledger on the 1st of each month</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={notifications.monthlyDigest}
-                    onChange={(e) => setNotifications((p) => ({ ...p, monthlyDigest: e.target.checked }))}
+                    checked={notifications.weeklyDigest}
+                    onChange={(e) => setNotifications((p) => ({ ...p, weeklyDigest: e.target.checked }))}
                     className="sr-only peer"
                   />
                   <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-600"></div>

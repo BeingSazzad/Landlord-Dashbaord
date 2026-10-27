@@ -202,6 +202,7 @@ export function TransactionsTable() {
               </th>
 
               <th>Plan Tier</th>
+              <th>Billing</th>
 
               <th
                 onClick={() => toggleSort('amount')}
@@ -263,7 +264,7 @@ export function TransactionsTable() {
                   <td>
                     <span
                       className={cn(
-                        'inline-flex items-center rounded-lg px-2.5 py-0.5 text-xs font-bold',
+                        'inline-flex items-center rounded-lg px-2.5 py-0.5 text-xs font-semibold',
                         txn.plan === 'Portfolio'
                           ? 'bg-blue-50 text-brand-700 border border-blue-100'
                           : 'bg-indigo-50 text-indigo-700 border border-indigo-100'
@@ -271,9 +272,11 @@ export function TransactionsTable() {
                     >
                       {txn.plan} Plan
                     </span>
-                    <span className="text-[11px] text-slate-400 capitalize block mt-0.5">
-                      {txn.billing}
-                    </span>
+                  </td>
+
+                  {/* Dedicated Billing Cycle Column (User Requested: month yearly alada column) */}
+                  <td className="text-xs text-slate-600 font-medium capitalize">
+                    {txn.billing}
                   </td>
 
                   {/* Amount */}
@@ -290,7 +293,7 @@ export function TransactionsTable() {
                   <td>
                     <span
                       className={cn(
-                        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-bold capitalize',
+                        'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium capitalize',
                         txn.status === 'completed'
                           ? 'bg-emerald-50 text-emerald-700'
                           : txn.status === 'failed'
@@ -308,7 +311,7 @@ export function TransactionsTable() {
 
                   {/* Reference */}
                   <td>
-                    <span className="font-mono text-xs font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                    <span className="font-mono text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
                       {txn.reference}
                     </span>
                   </td>
@@ -331,7 +334,7 @@ export function TransactionsTable() {
               ))
             ) : (
               <tr>
-                <td colSpan={8} className="text-center py-12 text-slate-400 text-sm">
+                <td colSpan={9} className="text-center py-12 text-slate-400 text-sm">
                   No transactions match the selected filter.
                 </td>
               </tr>

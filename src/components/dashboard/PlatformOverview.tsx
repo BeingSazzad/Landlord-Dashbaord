@@ -12,7 +12,7 @@ import {
   Users,
 } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
-import { MOCK_PLANS, MOCK_SUPPORT, MONTHLY_METRICS, getLandlordSubscriptions, getPlatformStats } from '@/lib/mockData'
+import { MOCK_PLANS, MOCK_SUPPORT, getLandlordSubscriptions, getPlatformStats } from '@/lib/mockData'
 import { formatMoney } from '@/lib/utils'
 import { StatCard } from './components/StatCard'
 import { RevenueSplineChart, UserGrowthDualBarChart } from './components/Charts'
@@ -75,7 +75,7 @@ export function PlatformOverview() {
 
   return (
     <div className="space-y-7">
-      {/* 4 Landlord HQ Domain Metric Cards */}
+      {/* 4 Landlord HQ Domain Metric Cards (Clean, minimal, no loud colored pills) */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {/* Total Users */}
         <StatCard
@@ -84,9 +84,6 @@ export function PlatformOverview() {
           hint={`${stats.landlords * 105} landlords · ${stats.tenants * 360} tenants`}
           icon={Users}
           iconVariant="blue"
-          trend="14.7%"
-          trendDirection="up"
-          trendSubtext="vs last month"
         />
 
         {/* Monthly Recurring Revenue */}
@@ -95,34 +92,25 @@ export function PlatformOverview() {
           value="£8,450"
           hint="£101.4k ARR run rate"
           icon={CreditCard}
-          iconVariant="emerald"
-          trend="21.8%"
-          trendDirection="up"
-          trendSubtext="vs last month"
+          iconVariant="blue"
         />
 
         {/* Active Subscriptions */}
         <StatCard
           label="Landlord Subscriptions"
           value="348"
-          hint="24 landlords on trial"
+          hint="Active paying landlords"
           icon={Building2}
           iconVariant="blue"
-          trend="12.5%"
-          trendDirection="up"
-          trendSubtext="vs last month"
         />
 
         {/* Open Support Tickets */}
         <StatCard
           label="Support Inbox"
           value={`${MOCK_SUPPORT.filter((m) => m.status === 'open').length + 8} Open`}
-          hint="3 urgent inquiries"
+          hint="Tickets awaiting response"
           icon={MessageSquare}
-          iconVariant="amber"
-          trend="Needs Reply"
-          trendDirection="up"
-          trendSubtext="Support queue"
+          iconVariant="blue"
         />
       </div>
 
@@ -132,55 +120,30 @@ export function PlatformOverview() {
         <RevenueSplineChart />
       </div>
 
-      {/* SaaS Portfolio Unit Economics & Plan Mix (Consolidated from Analytics) */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Revenue by Subscription Tier */}
-        <div className="admin-card p-6">
-          <div className="flex items-center justify-between border-b border-slate-100/80 pb-4">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 tracking-tight">Revenue by Subscription Plan</h3>
-              <p className="mt-0.5 text-xs text-slate-400 font-medium">B2B Landlord subscription distribution and MRR yield</p>
-            </div>
-            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-100">
-              ARR: {formatMoney(stats.arr || 101400)}
-            </span>
+      {/* SaaS Subscription Plan Breakdown (Consolidated from Analytics) */}
+      <div className="admin-card p-6">
+        <div className="flex items-center justify-between border-b border-slate-100/80 pb-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">Revenue by Subscription Plan</h3>
+            <p className="mt-0.5 text-xs text-slate-400 font-medium">Landlord subscription distribution across tiers</p>
           </div>
-
-          <div className="mt-4 space-y-3">
-            {planBreakdown.map((plan) => (
-              <div key={plan.name} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/40 px-4 py-3 hover:bg-slate-50 transition">
-                <div className="flex items-center gap-3">
-                  <span className="rounded-md border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-brand-700">
-                    {plan.name}
-                  </span>
-                  <span className="text-xs text-slate-500 font-medium">{plan.count} paying landlords</span>
-                </div>
-                <span className="text-xs font-bold text-slate-900">{formatMoney(plan.revenue || 49)}/mo</span>
-              </div>
-            ))}
-          </div>
+          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+            ARR: {formatMoney(stats.arr || 101400)}
+          </span>
         </div>
 
-        {/* Landlord Acquisition Cadence */}
-        <div className="admin-card p-6">
-          <div className="flex items-center justify-between border-b border-slate-100/80 pb-4">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 tracking-tight">Landlord Acquisition Cadence</h3>
-              <p className="mt-0.5 text-xs text-slate-400 font-medium">New verified landlords joining platform portfolio</p>
-            </div>
-            <span className="text-xs font-bold text-brand-600">
-              +12.5% MoM Growth
-            </span>
-          </div>
-
-          <div className="mt-4 grid grid-cols-4 sm:grid-cols-7 gap-2">
-            {MONTHLY_METRICS.map((m) => (
-              <div key={m.month} className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-center hover:border-slate-200 transition">
-                <p className="text-base font-bold text-brand-700">{m.landlords}</p>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">{m.month}</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {planBreakdown.map((plan) => (
+            <div key={plan.name} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/40 px-4 py-3 hover:bg-slate-50 transition">
+              <div className="flex items-center gap-2.5">
+                <span className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700">
+                  {plan.name}
+                </span>
+                <span className="text-xs text-slate-500 font-medium">{plan.count} landlords</span>
               </div>
-            ))}
-          </div>
+              <span className="text-xs font-bold text-slate-900">{formatMoney(plan.revenue || 49)}/mo</span>
+            </div>
+          ))}
         </div>
       </div>
 
