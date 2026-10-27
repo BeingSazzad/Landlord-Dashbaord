@@ -12,8 +12,7 @@ import {
   Users,
 } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
-import { MOCK_PLANS, MOCK_SUPPORT, getLandlordSubscriptions, getPlatformStats } from '@/lib/mockData'
-import { formatMoney } from '@/lib/utils'
+import { MOCK_SUPPORT, getPlatformStats } from '@/lib/mockData'
 import { StatCard } from './components/StatCard'
 import { RevenueSplineChart, UserGrowthDualBarChart } from './components/Charts'
 
@@ -55,15 +54,8 @@ const INITIAL_ATTENTION_ITEMS: AttentionItem[] = [
 
 export function PlatformOverview() {
   const stats = getPlatformStats()
-  const subs = getLandlordSubscriptions()
   const [items, setItems] = useState<AttentionItem[]>(INITIAL_ATTENTION_ITEMS)
   const [resolvingId, setResolvingId] = useState<string | null>(null)
-
-  const planBreakdown = MOCK_PLANS.map((plan) => ({
-    name: plan.name,
-    count: subs.filter((s) => s.plan === plan.name).length,
-    revenue: subs.filter((s) => s.plan === plan.name).reduce((sum, s) => sum + (s.billing === 'yearly' ? Math.round(s.amount / 12) : s.amount), 0),
-  }))
 
   const handleAction = (id: string) => {
     setResolvingId(id)
@@ -118,33 +110,6 @@ export function PlatformOverview() {
       <div className="grid gap-6 lg:grid-cols-2">
         <UserGrowthDualBarChart />
         <RevenueSplineChart />
-      </div>
-
-      {/* SaaS Subscription Plan Breakdown (Consolidated from Analytics) */}
-      <div className="admin-card p-6">
-        <div className="flex items-center justify-between border-b border-slate-100/80 pb-4">
-          <div>
-            <h3 className="text-base font-bold text-slate-900 tracking-tight">Revenue by Subscription Plan</h3>
-            <p className="mt-0.5 text-xs text-slate-400 font-medium">Landlord subscription distribution across tiers</p>
-          </div>
-          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
-            ARR: {formatMoney(stats.arr || 101400)}
-          </span>
-        </div>
-
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {planBreakdown.map((plan) => (
-            <div key={plan.name} className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/40 px-4 py-3 hover:bg-slate-50 transition">
-              <div className="flex items-center gap-2.5">
-                <span className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700">
-                  {plan.name}
-                </span>
-                <span className="text-xs text-slate-500 font-medium">{plan.count} landlords</span>
-              </div>
-              <span className="text-xs font-bold text-slate-900">{formatMoney(plan.revenue || 49)}/mo</span>
-            </div>
-          ))}
-        </div>
       </div>
 
       {/* Needs Attention & Quick Actions */}

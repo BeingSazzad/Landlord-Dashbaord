@@ -143,7 +143,7 @@ export function UsersTable() {
               </div>
             </div>
             <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">1,894</p>
-            <p className="mt-1 text-xs text-slate-500 font-medium">Currently Housed on Leases</p>
+            <p className="mt-1 text-xs text-slate-500 font-medium">Active tenancies on lease</p>
           </div>
 
           <div className="admin-card p-4.5">
@@ -279,7 +279,7 @@ export function UsersTable() {
                         </p>
                       </td>
                       <td className="py-3.5 px-4 text-xs font-medium text-slate-600">
-                        {user.activeTenantsCount ?? 4} Housed
+                        {user.activeTenantsCount ?? 4}
                       </td>
                       <td className="py-3.5 px-4">
                         <div className="flex items-center gap-1.5">
