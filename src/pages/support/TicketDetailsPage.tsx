@@ -236,7 +236,6 @@ export function TicketDetailsPage() {
   const [ticket, setTicket] = useState<TicketRecord>(initialTicket)
   const [replyText, setReplyText] = useState('')
   const [escrowHold, setEscrowHold] = useState(true)
-  const [smsNotify, setSmsNotify] = useState(true)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -634,22 +633,6 @@ export function TicketDetailsPage() {
                           : 'Escrow hold released.'
                       )
                     }}
-                    className="sr-only peer"
-                  />
-                  <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>
-                </label>
-              </div>
-
-              <div className="flex items-center justify-between pt-3">
-                <div>
-                  <p className="text-xs font-bold text-slate-900">SMS Notification Dispatch</p>
-                  <p className="text-[11px] text-slate-400">Text landlord on ticket reply</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={smsNotify}
-                    onChange={(e) => setSmsNotify(e.target.checked)}
                     className="sr-only peer"
                   />
                   <div className="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-brand-600"></div>

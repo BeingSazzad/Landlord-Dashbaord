@@ -21,7 +21,6 @@ import {
   Redo2,
   Save,
   Search,
-  ShieldCheck,
   Trash2,
   Undo2,
   Upload,
@@ -32,25 +31,12 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 
-type CmsTab = 'pages' | 'faqs' | 'trades' | 'partners' | 'branding'
+type CmsTab = 'pages' | 'faqs' | 'categories' | 'branding'
 type FaqAudience = 'landlords' | 'tenants' | 'contractors'
 
-interface ContractorTrade {
+interface ContractorCategory {
   id: string
   name: string
-  standard: string
-  code: string
-  active: boolean
-  jobsCount?: number
-}
-
-interface CompliancePartner {
-  id: string
-  name: string
-  type: string
-  regCode: string
-  status: string
-  active: boolean
 }
 
 interface PolicyDocument {
@@ -200,122 +186,15 @@ const INITIAL_FAQS: FaqItem[] = [
   },
 ]
 
-const INITIAL_TRADES: ContractorTrade[] = [
-  {
-    id: 'tr-1',
-    name: 'Gas Safe Heating & Boiler Engineer',
-    standard: 'Statutory Gas Safe Register (CP12)',
-    code: 'GSR-CP12',
-    active: true,
-    jobsCount: 48,
-  },
-  {
-    id: 'tr-2',
-    name: 'Electrical Inspector & Rewiring',
-    standard: 'NICEIC / ELECSA Approved (EICR)',
-    code: 'EICR-STAT',
-    active: true,
-    jobsCount: 34,
-  },
-  {
-    id: 'tr-3',
-    name: 'Plumbing & Emergency Drainage',
-    standard: 'WaterSafe & CIPHE UK Standards',
-    code: 'PLUMB-SAFE',
-    active: true,
-    jobsCount: 52,
-  },
-  {
-    id: 'tr-4',
-    name: 'Roofing & Weatherproofing',
-    standard: 'NFRC Competent Roofer Scheme',
-    code: 'ROOF-UK',
-    active: true,
-    jobsCount: 19,
-  },
-  {
-    id: 'tr-5',
-    name: 'Locksmith & Security Specialist',
-    standard: 'Master Locksmiths Association (MLA)',
-    code: 'LOCK-MLA',
-    active: true,
-    jobsCount: 27,
-  },
-  {
-    id: 'tr-6',
-    name: 'Carpentry & Joinery',
-    standard: 'Institute of Carpenters Certified',
-    code: 'CARP-IOC',
-    active: true,
-    jobsCount: 15,
-  },
-  {
-    id: 'tr-7',
-    name: 'Painting & Specialist Decorating',
-    standard: 'Painting & Decorating Association (PDA)',
-    code: 'DEC-PDA',
-    active: true,
-    jobsCount: 22,
-  },
-  {
-    id: 'tr-8',
-    name: 'General Maintenance & Handyman',
-    standard: 'Landlord HQ Verified Trade',
-    code: 'GEN-MAINT',
-    active: true,
-    jobsCount: 41,
-  },
-]
-
-const INITIAL_PARTNERS: CompliancePartner[] = [
-  {
-    id: 'p-1',
-    name: 'Deposit Protection Service (DPS)',
-    type: 'Statutory Tenancy Deposit Custodial',
-    regCode: 'DPS-UK-7721',
-    status: 'Integrated API',
-    active: true,
-  },
-  {
-    id: 'p-2',
-    name: 'Gas Safe Register UK',
-    type: 'Statutory CP12 Verification Engine',
-    regCode: 'GSR-API-4410',
-    status: 'Active Feed',
-    active: true,
-  },
-  {
-    id: 'p-3',
-    name: 'NICEIC Electrical Safety',
-    type: 'EICR Inspector Verification Network',
-    regCode: 'NICEIC-REG-109',
-    status: 'Active Feed',
-    active: true,
-  },
-  {
-    id: 'p-4',
-    name: 'National Residential Landlords Association',
-    type: 'NRLA UK Accreditation Partner',
-    regCode: 'NRLA-CORP-902',
-    status: 'Verified Partner',
-    active: true,
-  },
-  {
-    id: 'p-5',
-    name: 'PropertyMark Protected',
-    type: 'Letting & Tenancy Management Standard',
-    regCode: 'PMP-STD-551',
-    status: 'Compliant',
-    active: true,
-  },
-  {
-    id: 'p-6',
-    name: 'Tenancy Deposit Scheme (TDS)',
-    type: 'Alternative Deposit Insurance Partner',
-    regCode: 'TDS-INS-338',
-    status: 'Active Link',
-    active: true,
-  },
+const INITIAL_CATEGORIES: ContractorCategory[] = [
+  { id: 'cat-1', name: 'Gas & Heating' },
+  { id: 'cat-2', name: 'Electrical & Rewiring' },
+  { id: 'cat-3', name: 'Plumbing & Drainage' },
+  { id: 'cat-4', name: 'Roofing' },
+  { id: 'cat-5', name: 'Locksmith' },
+  { id: 'cat-6', name: 'Carpentry & Joinery' },
+  { id: 'cat-7', name: 'Painting & Decorating' },
+  { id: 'cat-8', name: 'General Handyman' },
 ]
 
 export function CmsPanel() {
@@ -325,24 +204,17 @@ export function CmsPanel() {
   const [editingPolicy, setEditingPolicy] = useState<PolicyDocument | null>(null)
   const [policyContent, setPolicyContent] = useState<string>('')
 
-  // Contractor Trades State
-  const [trades, setTrades] = useState<ContractorTrade[]>(INITIAL_TRADES)
-  const [tradeSearch, setTradeSearch] = useState('')
-  const [editingTrade, setEditingTrade] = useState<ContractorTrade | null>(null)
-  const [isAddingTrade, setIsAddingTrade] = useState(false)
-  const [tradeName, setTradeName] = useState('')
-  const [tradeStandard, setTradeStandard] = useState('')
-  const [tradeCode, setTradeCode] = useState('')
-
-  // Compliance Partners State
-  const [partners, setPartners] = useState<CompliancePartner[]>(INITIAL_PARTNERS)
-  const [partnerSearch, setPartnerSearch] = useState('')
-  const [editingPartner, setEditingPartner] = useState<CompliancePartner | null>(null)
-  const [isAddingPartner, setIsAddingPartner] = useState(false)
-  const [partnerName, setPartnerName] = useState('')
-  const [partnerType, setPartnerType] = useState('')
-  const [partnerCode, setPartnerCode] = useState('')
-  const [partnerStatus, setPartnerStatus] = useState('Integrated API')
+  // Contractor Categories State (Simple text add/edit per user command)
+  const [categories, setCategories] = useState<ContractorCategory[]>(INITIAL_CATEGORIES)
+  const [editingCategory, setEditingCategory] = useState<ContractorCategory | null>(null)
+  const [isAddingCategory, setIsAddingCategory] = useState(false)
+  const [categoryName, setCategoryName] = useState('')
+  const [categorySearch, setCategorySearch] = useState('')
+  const filteredCategories = useMemo(() => {
+    return categories.filter((c) =>
+      c.name.toLowerCase().includes(categorySearch.toLowerCase())
+    )
+  }, [categories, categorySearch])
 
   // Identity & Branding State
   const [platformName, setPlatformName] = useState('Landlord HQ')
@@ -376,29 +248,6 @@ export function CmsPanel() {
       return matchAudience && matchQuery
     })
   }, [faqs, faqAudience, faqSearch])
-
-  const filteredTrades = useMemo(() => {
-    if (!tradeSearch.trim()) return trades
-    const q = tradeSearch.toLowerCase()
-    return trades.filter(
-      (t) =>
-        t.name.toLowerCase().includes(q) ||
-        t.standard.toLowerCase().includes(q) ||
-        t.code.toLowerCase().includes(q)
-    )
-  }, [trades, tradeSearch])
-
-  const filteredPartners = useMemo(() => {
-    if (!partnerSearch.trim()) return partners
-    const q = partnerSearch.toLowerCase()
-    return partners.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.type.toLowerCase().includes(q) ||
-        p.regCode.toLowerCase().includes(q) ||
-        p.status.toLowerCase().includes(q)
-    )
-  }, [partners, partnerSearch])
 
   const activePolicy = useMemo(() => {
     return policies.find((p) => p.id === selectedPolicyId) || policies[0]
@@ -535,30 +384,16 @@ export function CmsPanel() {
 
           <button
             type="button"
-            onClick={() => setActiveTab('trades')}
+            onClick={() => setActiveTab('categories')}
             className={cn(
               'flex items-center gap-2 border-b-2 py-4 text-sm font-bold transition cursor-pointer',
-              activeTab === 'trades'
+              activeTab === 'categories'
                 ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800'
             )}
           >
             <Wrench className="h-4 w-4" />
-            Contractor Trades
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('partners')}
-            className={cn(
-              'flex items-center gap-2 border-b-2 py-4 text-sm font-bold transition cursor-pointer',
-              activeTab === 'partners'
-                ? 'border-brand-600 text-brand-600'
-                : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800'
-            )}
-          >
-            <ShieldCheck className="h-4 w-4" />
-            Compliance Partners
+            Contractor Categories
           </button>
 
           <button
@@ -1008,26 +843,26 @@ export function CmsPanel() {
         </div>
       )}
 
-      {/* TAB 3: CONTRACTOR TRADES VIEW */}
-      {activeTab === 'trades' && (
+      {/* TAB 3: CONTRACTOR CATEGORIES VIEW (Simple text add/edit per user command) */}
+      {activeTab === 'categories' && (
         <div className="space-y-6">
           <div className="admin-card p-5 sm:p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100/80 pb-5">
               <div>
-                <h3 className="text-base font-bold text-slate-900 tracking-tight">Contractor Trades & Services</h3>
+                <h3 className="text-base font-bold text-slate-900 tracking-tight">Contractor Categories</h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Trade categories and statutory verification standards configured for the mobile app
+                  Manage contractor trade and specialty categories available on the platform
                 </p>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="relative min-w-[200px]">
+                <div className="relative min-w-[220px]">
                   <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="Search trades…"
-                    value={tradeSearch}
-                    onChange={(e) => setTradeSearch(e.target.value)}
+                    placeholder="Search categories…"
+                    value={categorySearch}
+                    onChange={(e) => setCategorySearch(e.target.value)}
                     className="admin-input !pl-8.5 py-1.5 text-xs w-full"
                   />
                 </div>
@@ -1035,237 +870,77 @@ export function CmsPanel() {
                 <button
                   type="button"
                   onClick={() => {
-                    setEditingTrade(null)
-                    setTradeName('')
-                    setTradeStandard('')
-                    setTradeCode('')
-                    setIsAddingTrade(true)
+                    setEditingCategory(null)
+                    setCategoryName('')
+                    setIsAddingCategory(true)
                   }}
                   className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-brand-700 cursor-pointer shrink-0"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Add Trade
+                  Add Category
                 </button>
               </div>
             </div>
 
-            {/* Trades Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-              {filteredTrades.map((trade) => (
-                <div
-                  key={trade.id}
-                  className="rounded-2xl border border-slate-200/90 bg-white p-5 flex flex-col justify-between shadow-2xs hover:border-slate-300 hover:shadow-xs transition"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-brand-600 border border-blue-100">
-                        <Wrench className="h-4 w-4" />
-                      </div>
-                      <span className="font-mono text-[11px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
-                        {trade.code}
-                      </span>
-                    </div>
-
-                    <h4 className="text-sm font-bold text-slate-900 mt-3">{trade.name}</h4>
-                    <p className="text-xs text-slate-500 mt-1 leading-snug">{trade.standard}</p>
-
-                    <div className="mt-3.5 flex items-center justify-between rounded-lg bg-slate-50/70 px-3 py-2 text-xs">
-                      <span className="text-[11px] font-medium text-slate-400">Activity:</span>
-                      <span className="text-xs font-bold text-slate-700">{trade.jobsCount || 0} completed jobs</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between pt-3.5 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-medium text-slate-500">Active in App:</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={trade.active}
-                          onChange={() => {
-                            setTrades((prev) =>
-                              prev.map((t) => (t.id === trade.id ? { ...t, active: !t.active } : t))
-                            )
-                            showToast(`${trade.name} visibility updated.`)
-                          }}
-                          className="sr-only peer"
-                        />
-                        <div className="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingTrade(trade)
-                          setTradeName(trade.name)
-                          setTradeStandard(trade.standard)
-                          setTradeCode(trade.code)
-                          setIsAddingTrade(true)
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
-                        title="Edit Trade"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setTrades((prev) => prev.filter((t) => t.id !== trade.id))
-                          showToast(`${trade.name} removed.`)
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
-                        title="Delete Trade"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+            {/* Simple Clean Table of Categories */}
+            <div className="admin-table-wrap mt-5">
+              <table className="min-w-full text-left">
+                <thead>
+                  <tr>
+                    <th className="w-16">#</th>
+                    <th>Category Name</th>
+                    <th className="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredCategories.length > 0 ? (
+                    filteredCategories.map((cat, idx) => (
+                      <tr key={cat.id} className="hover:bg-slate-50/70 transition">
+                        <td className="text-xs font-mono font-semibold text-slate-400">
+                          {idx + 1}
+                        </td>
+                        <td className="text-sm font-semibold text-slate-900">
+                          {cat.name}
+                        </td>
+                        <td className="text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingCategory(cat)
+                                setCategoryName(cat.name)
+                                setIsAddingCategory(true)
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                              title="Edit Category"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCategories((prev) => prev.filter((c) => c.id !== cat.id))
+                                showToast(`"${cat.name}" category removed.`)
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                              title="Delete Category"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="py-10 text-center text-sm font-medium text-slate-400">
+                        No contractor categories found.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
-
-            {filteredTrades.length === 0 && (
-              <div className="py-12 text-center text-sm font-medium text-slate-400">
-                No trades match your search query.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: COMPLIANCE PARTNERS VIEW */}
-      {activeTab === 'partners' && (
-        <div className="space-y-6">
-          <div className="admin-card p-5 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100/80 pb-5">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 tracking-tight">UK Industry Accreditations & Compliance Partners</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Authorised regulatory bodies and statutory deposit protection schemes integrated with Landlord HQ
-                </p>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <div className="relative min-w-[200px]">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search schemes…"
-                    value={partnerSearch}
-                    onChange={(e) => setPartnerSearch(e.target.value)}
-                    className="admin-input !pl-8.5 py-1.5 text-xs w-full"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingPartner(null)
-                    setPartnerName('')
-                    setPartnerType('')
-                    setPartnerCode('')
-                    setPartnerStatus('Integrated API')
-                    setIsAddingPartner(true)
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-brand-700 cursor-pointer shrink-0"
-                >
-                  <Plus className="h-3.5 w-3.5" />
-                  Add Scheme
-                </button>
-              </div>
-            </div>
-
-            {/* Partners Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-              {filteredPartners.map((partner) => (
-                <div
-                  key={partner.id}
-                  className="rounded-2xl border border-slate-200/90 bg-white p-5 flex flex-col justify-between shadow-2xs hover:border-slate-300 hover:shadow-xs transition"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                        {partner.status}
-                      </span>
-                      <ShieldCheck className="h-4 w-4 text-brand-600" />
-                    </div>
-
-                    <h4 className="text-sm font-bold text-slate-900 mt-3">{partner.name}</h4>
-                    <p className="text-xs text-slate-500 mt-1 leading-snug">{partner.type}</p>
-
-                    <div className="mt-3.5 flex items-center justify-between rounded-lg bg-slate-50/70 px-3 py-2 text-xs">
-                      <span className="text-[11px] font-medium text-slate-400">Scheme ID:</span>
-                      <span className="font-mono text-xs font-bold text-slate-700">{partner.regCode}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-5 flex items-center justify-between pt-3.5 border-t border-slate-100">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-medium text-slate-500">Live Sync:</span>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={partner.active}
-                          onChange={() => {
-                            setPartners((prev) =>
-                              prev.map((p) => (p.id === partner.id ? { ...p, active: !p.active } : p))
-                            )
-                            showToast(`${partner.name} sync status updated.`)
-                          }}
-                          className="sr-only peer"
-                        />
-                        <div className="w-8 h-4 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-brand-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => showToast(`Sync verification for ${partner.name} passed with 0 errors.`)}
-                        className="text-xs font-semibold text-brand-600 hover:text-brand-700 hover:underline cursor-pointer mr-1"
-                      >
-                        Verify API
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingPartner(partner)
-                          setPartnerName(partner.name)
-                          setPartnerType(partner.type)
-                          setPartnerCode(partner.regCode)
-                          setPartnerStatus(partner.status)
-                          setIsAddingPartner(true)
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
-                        title="Edit Scheme"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setPartners((prev) => prev.filter((p) => p.id !== partner.id))
-                          showToast(`${partner.name} removed.`)
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
-                        title="Delete Scheme"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredPartners.length === 0 && (
-              <div className="py-12 text-center text-sm font-medium text-slate-400">
-                No schemes match your search query.
-              </div>
-            )}
           </div>
         </div>
       )}
@@ -1466,188 +1141,66 @@ export function CmsPanel() {
         </div>
       </Modal>
 
-      {/* Modal for Adding / Editing Trade */}
+      {/* Modal for Adding / Editing Contractor Category (Simple Text Add/Edit) */}
       <Modal
-        open={isAddingTrade}
-        title={editingTrade ? 'Edit Contractor Trade' : 'Add Contractor Trade Category'}
-        onClose={() => setIsAddingTrade(false)}
+        open={isAddingCategory || !!editingCategory}
+        title={editingCategory ? 'Edit Contractor Category' : 'Add Contractor Category'}
+        onClose={() => {
+          setIsAddingCategory(false)
+          setEditingCategory(null)
+        }}
         footer={
           <div className="flex gap-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsAddingTrade(false)}>
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => {
+                setIsAddingCategory(false)
+                setEditingCategory(null)
+              }}
+            >
               Cancel
             </Button>
             <Button
               fullWidth
               onClick={() => {
-                if (!tradeName.trim()) return
-                if (editingTrade) {
-                  setTrades((prev) =>
-                    prev.map((t) =>
-                      t.id === editingTrade.id
-                        ? {
-                            ...t,
-                            name: tradeName.trim(),
-                            standard: tradeStandard.trim() || 'Landlord HQ Verified Trade',
-                            code: tradeCode.trim().toUpperCase() || t.code,
-                          }
-                        : t
+                if (!categoryName.trim()) return
+                if (editingCategory) {
+                  setCategories((prev) =>
+                    prev.map((c) =>
+                      c.id === editingCategory.id ? { ...c, name: categoryName.trim() } : c
                     )
                   )
-                  showToast(`${tradeName.trim()} updated successfully.`)
+                  showToast(`Category updated to "${categoryName.trim()}".`)
                 } else {
-                  const newTrade: ContractorTrade = {
-                    id: `tr-${Date.now()}`,
-                    name: tradeName.trim(),
-                    standard: tradeStandard.trim() || 'Landlord HQ Verified Trade',
-                    code: tradeCode.trim().toUpperCase() || `TR-${Math.floor(100 + Math.random() * 900)}`,
-                    active: true,
-                    jobsCount: 0,
+                  const newCat: ContractorCategory = {
+                    id: `cat-${Date.now()}`,
+                    name: categoryName.trim(),
                   }
-                  setTrades((prev) => [...prev, newTrade])
-                  showToast(`Trade ${newTrade.name} added to mobile app.`)
+                  setCategories((prev) => [...prev, newCat])
+                  showToast(`Category "${newCat.name}" added.`)
                 }
-                setIsAddingTrade(false)
+                setIsAddingCategory(false)
+                setEditingCategory(null)
               }}
               className="!bg-brand-600 hover:!bg-brand-700"
             >
-              {editingTrade ? 'Save Changes' : 'Add Trade'}
+              {editingCategory ? 'Save Changes' : 'Add Category'}
             </Button>
           </div>
         }
       >
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-slate-700">Trade Specialty Name</label>
+            <label className="text-xs font-bold text-slate-700 block mb-1.5">Category Name</label>
             <input
               type="text"
-              className="admin-input w-full mt-1.5"
-              placeholder="e.g. Gas Safe Heating & Boiler Engineer"
-              value={tradeName}
-              onChange={(e) => setTradeName(e.target.value)}
+              className="admin-input w-full"
+              placeholder="e.g. Gas & Heating, Electrician, Plumber"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              autoFocus
             />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700">Regulatory / Verification Standard</label>
-            <input
-              type="text"
-              className="admin-input w-full mt-1.5"
-              placeholder="e.g. Statutory Gas Safe Register (CP12)"
-              value={tradeStandard}
-              onChange={(e) => setTradeStandard(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700">Category Code / Short Tag</label>
-            <input
-              type="text"
-              className="admin-input w-full mt-1.5 font-mono uppercase"
-              placeholder="e.g. GSR-CP12"
-              value={tradeCode}
-              onChange={(e) => setTradeCode(e.target.value)}
-            />
-          </div>
-        </div>
-      </Modal>
-
-      {/* Modal for Adding / Editing Compliance Scheme */}
-      <Modal
-        open={isAddingPartner}
-        title={editingPartner ? 'Edit Compliance Scheme' : 'Add UK Compliance Partner Scheme'}
-        onClose={() => setIsAddingPartner(false)}
-        footer={
-          <div className="flex gap-2">
-            <Button variant="secondary" fullWidth onClick={() => setIsAddingPartner(false)}>
-              Cancel
-            </Button>
-            <Button
-              fullWidth
-              onClick={() => {
-                if (!partnerName.trim()) return
-                if (editingPartner) {
-                  setPartners((prev) =>
-                    prev.map((p) =>
-                      p.id === editingPartner.id
-                        ? {
-                            ...p,
-                            name: partnerName.trim(),
-                            type: partnerType.trim() || p.type,
-                            regCode: partnerCode.trim() || p.regCode,
-                            status: partnerStatus,
-                          }
-                        : p
-                    )
-                  )
-                  showToast(`${partnerName.trim()} updated successfully.`)
-                } else {
-                  const newP: CompliancePartner = {
-                    id: `p-${Date.now()}`,
-                    name: partnerName.trim(),
-                    type: partnerType.trim() || 'Statutory Compliance Partner',
-                    regCode: partnerCode.trim() || `UK-SCHEME-${Math.floor(1000 + Math.random() * 9000)}`,
-                    status: partnerStatus,
-                    active: true,
-                  }
-                  setPartners((prev) => [...prev, newP])
-                  showToast(`Scheme ${newP.name} added successfully.`)
-                }
-                setIsAddingPartner(false)
-              }}
-              className="!bg-brand-600 hover:!bg-brand-700"
-            >
-              {editingPartner ? 'Save Changes' : 'Add Scheme'}
-            </Button>
-          </div>
-        }
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs font-bold text-slate-700">Partner Scheme Name</label>
-            <input
-              type="text"
-              className="admin-input w-full mt-1.5"
-              placeholder="e.g. Deposit Protection Service (DPS)"
-              value={partnerName}
-              onChange={(e) => setPartnerName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700">Standard / Description</label>
-            <input
-              type="text"
-              className="admin-input w-full mt-1.5"
-              placeholder="e.g. Statutory Tenancy Deposit Custodial"
-              value={partnerType}
-              onChange={(e) => setPartnerType(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700">Registration / Scheme ID</label>
-            <input
-              type="text"
-              className="admin-input w-full mt-1.5 font-mono"
-              placeholder="e.g. DPS-UK-7721"
-              value={partnerCode}
-              onChange={(e) => setPartnerCode(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700">Integration Status</label>
-            <select
-              value={partnerStatus}
-              onChange={(e) => setPartnerStatus(e.target.value)}
-              className="admin-input w-full mt-1.5"
-            >
-              <option value="Integrated API">Integrated API</option>
-              <option value="Active Feed">Active Feed</option>
-              <option value="Verified Partner">Verified Partner</option>
-              <option value="Compliant">Compliant</option>
-              <option value="Active Link">Active Link</option>
-            </select>
           </div>
         </div>
       </Modal>

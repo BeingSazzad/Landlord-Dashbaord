@@ -80,7 +80,7 @@ export function UsersTable() {
       ? 'Search landlords by name, company, email…'
       : activeCategory === 'tenant'
         ? 'Search tenants by name, property, landlord…'
-        : 'Search contractors by trade, company, accreditation…'
+        : 'Search contractors by trade, company, name…'
 
   return (
     <div className="space-y-6">
@@ -465,7 +465,6 @@ export function UsersTable() {
                 <tr>
                   <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">Contractor</th>
                   <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">Trade</th>
-                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">Accreditation</th>
                   <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">Landlords</th>
                   <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">Rating</th>
                   <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">Status</th>
@@ -493,9 +492,6 @@ export function UsersTable() {
                       </td>
                       <td className="py-3.5 px-4 text-xs font-medium text-slate-800">
                         {user.trade || 'General Maintenance'}
-                      </td>
-                      <td className="py-3.5 px-4 text-xs text-slate-600 font-mono">
-                        {user.accreditationId || 'Verified #UK-4412'}
                       </td>
                       <td className="py-3.5 px-4 text-xs font-medium text-slate-600">
                         {user.assignedLandlordsCount ?? 4} Landlords
@@ -678,10 +674,6 @@ export function UsersTable() {
                   <div className="flex justify-between py-1 border-b border-slate-100">
                     <span className="text-slate-500">Trade:</span>
                     <span className="font-semibold text-slate-800">{selectedUser.trade || 'Heating Engineer'}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-100">
-                    <span className="text-slate-500">Accreditation:</span>
-                    <span className="font-mono font-semibold text-slate-800">{selectedUser.accreditationId || 'Gas Safe #559102'}</span>
                   </div>
                   <div className="flex justify-between py-1 border-b border-slate-100">
                     <span className="text-slate-500">Serviced Landlords:</span>

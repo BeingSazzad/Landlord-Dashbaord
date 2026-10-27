@@ -1,6 +1,59 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { cn, formatMoney } from '@/lib/utils'
+
+function YearDropdown({ selectedYear, onSelect }: { selectedYear: string; onSelect: (y: string) => void }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [open])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-slate-50/60 px-2.5 py-1 text-xs font-bold text-slate-700 transition hover:bg-slate-100 cursor-pointer"
+      >
+        {selectedYear}
+        <ChevronDown className={cn('h-3.5 w-3.5 text-slate-400 transition-transform', open && 'rotate-180')} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 z-30 w-24 rounded-xl border border-slate-200 bg-white py-1 shadow-lg ring-1 ring-black/5">
+          {['2026', '2025', '2024'].map((year) => (
+            <button
+              key={year}
+              type="button"
+              onClick={() => {
+                onSelect(year)
+                setOpen(false)
+              }}
+              className={cn(
+                'w-full px-3 py-1.5 text-left text-xs font-medium transition cursor-pointer',
+                selectedYear === year
+                  ? 'bg-blue-50 text-brand-600 font-bold'
+                  : 'text-slate-700 hover:bg-slate-50'
+              )}
+            >
+              {year}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface MonthlyGrowthPoint {
   month: string
@@ -45,6 +98,7 @@ export const MOCK_12_MONTH_REVENUE: MonthlyRevenuePoint[] = [
 ]
 
 export function UserGrowthDualBarChart({ data = MOCK_12_MONTH_GROWTH }: { data?: MonthlyGrowthPoint[] }) {
+  const [selectedYear, setSelectedYear] = useState('2026')
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
   const maxVal = Math.max(...data.map((d) => Math.max(d.landlords, d.tenants)), 1) * 1.15
 
@@ -54,7 +108,7 @@ export function UserGrowthDualBarChart({ data = MOCK_12_MONTH_GROWTH }: { data?:
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100/80 pb-4">
         <div>
           <h3 className="text-base font-bold text-slate-900 tracking-tight">User Growth</h3>
-          <p className="mt-0.5 text-xs text-slate-400 font-medium">12-month landlord and tenant signups</p>
+          <p className="mt-0.5 text-xs text-slate-400 font-medium">Landlord and tenant registrations</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -69,13 +123,7 @@ export function UserGrowthDualBarChart({ data = MOCK_12_MONTH_GROWTH }: { data?:
             </span>
           </div>
 
-          <button
-            type="button"
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-slate-50/60 px-2.5 py-1 text-xs font-bold text-slate-700 transition hover:bg-slate-100"
-          >
-            2026
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-          </button>
+          <YearDropdown selectedYear={selectedYear} onSelect={setSelectedYear} />
         </div>
       </div>
 
@@ -141,6 +189,7 @@ export function UserGrowthDualBarChart({ data = MOCK_12_MONTH_GROWTH }: { data?:
 }
 
 export function RevenueSplineChart({ data = MOCK_12_MONTH_REVENUE }: { data?: MonthlyRevenuePoint[] }) {
+  const [selectedYear, setSelectedYear] = useState('2026')
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
   const width = 640
@@ -176,7 +225,7 @@ export function RevenueSplineChart({ data = MOCK_12_MONTH_REVENUE }: { data?: Mo
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100/80 pb-4">
         <div>
           <h3 className="text-base font-bold text-slate-900 tracking-tight">Subscription Revenue</h3>
-          <p className="mt-0.5 text-xs text-slate-400 font-medium">12-month platform MRR and subscription overview</p>
+          <p className="mt-0.5 text-xs text-slate-400 font-medium">Platform MRR and subscription overview</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -191,13 +240,7 @@ export function RevenueSplineChart({ data = MOCK_12_MONTH_REVENUE }: { data?: Mo
             </span>
           </div>
 
-          <button
-            type="button"
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-slate-50/60 px-2.5 py-1 text-xs font-bold text-slate-700 transition hover:bg-slate-100"
-          >
-            2026
-            <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
-          </button>
+          <YearDropdown selectedYear={selectedYear} onSelect={setSelectedYear} />
         </div>
       </div>
 

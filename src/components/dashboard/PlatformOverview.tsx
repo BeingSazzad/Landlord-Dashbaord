@@ -67,13 +67,12 @@ export function PlatformOverview() {
 
   return (
     <div className="space-y-7">
-      {/* 4 Landlord HQ Domain Metric Cards (Clean, minimal, no loud colored pills) */}
+      {/* 4 Landlord HQ Domain Metric Cards (Clean, minimal, no subtext) */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
         {/* Total Users */}
         <StatCard
           label="Total Users"
           value={String(stats.totalUsers > 2000 ? stats.totalUsers : 2840)}
-          hint={`${stats.landlords * 105} landlords · ${stats.tenants * 360} tenants`}
           icon={Users}
           iconVariant="blue"
         />
@@ -82,7 +81,6 @@ export function PlatformOverview() {
         <StatCard
           label="Monthly Revenue (MRR)"
           value="£8,450"
-          hint="£101.4k ARR run rate"
           icon={CreditCard}
           iconVariant="blue"
         />
@@ -91,7 +89,6 @@ export function PlatformOverview() {
         <StatCard
           label="Landlord Subscriptions"
           value="348"
-          hint="Active paying landlords"
           icon={Building2}
           iconVariant="blue"
         />
@@ -100,7 +97,6 @@ export function PlatformOverview() {
         <StatCard
           label="Support Inbox"
           value={`${MOCK_SUPPORT.filter((m) => m.status === 'open').length + 8} Open`}
-          hint="Tickets awaiting response"
           icon={MessageSquare}
           iconVariant="blue"
         />
