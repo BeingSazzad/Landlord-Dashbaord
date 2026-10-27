@@ -1,149 +1,94 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, BarChart3, CreditCard, MessageSquare, Users, UserPlus, Wrench } from 'lucide-react'
-import { MOCK_SUPPORT, getLandlordSubscriptions, getPlatformStats } from '@/lib/mockData'
-import { formatMoney } from '@/lib/utils'
+import {
+  ArrowRight,
+  CreditCard,
+  Layers,
+  Users,
+} from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
+import { getLandlordSubscriptions, getPlatformStats } from '@/lib/mockData'
+import { formatMoney } from '@/lib/utils'
 import { StatCard } from './components/StatCard'
+import { RevenueSplineChart, UserGrowthDualBarChart } from './components/Charts'
 
 export function PlatformOverview() {
   const stats = getPlatformStats()
-  const recentSubs = getLandlordSubscriptions().slice(0, 3)
-  const openSupport = MOCK_SUPPORT.filter((m) => m.status === 'open')
-  const totalRoles = stats.landlords + stats.tenants + stats.contractors
-
-  const roleMix = [
-    { label: 'Landlords', count: stats.landlords, pct: Math.round((stats.landlords / totalRoles) * 100), color: 'bg-brand-600' },
-    { label: 'Tenants', count: stats.tenants, pct: Math.round((stats.tenants / totalRoles) * 100), color: 'bg-brand-400' },
-    { label: 'Contractors', count: stats.contractors, pct: Math.round((stats.contractors / totalRoles) * 100), color: 'bg-brand-200' },
-  ]
+  const recentSubs = getLandlordSubscriptions().slice(0, 4)
 
   return (
-    <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="space-y-7">
+      {/* 3 Overview Stat Cards (Matching media_1793094647905.png) */}
+      <div className="grid gap-5 sm:grid-cols-3">
+        {/* Total Landlords */}
         <StatCard
-          label="Total users"
-          value={String(stats.totalUsers)}
-          hint={`${stats.landlords} landlords · ${stats.tenants} tenants`}
+          label="Total Landlords"
+          value={String(stats.landlords)}
           icon={Users}
+          iconVariant="blue"
         />
-        <StatCard label="MRR" value={formatMoney(stats.mrr)} hint={`ARR ${formatMoney(stats.arr)}`} tone="green" icon={CreditCard} />
+
+        {/* Monthly Revenue */}
         <StatCard
-          label="Landlord subscriptions"
+          label="Monthly Revenue"
+          value={formatMoney(stats.mrr)}
+          icon={CreditCard}
+          iconVariant="blue"
+        />
+
+        {/* Active Subscriptions */}
+        <StatCard
+          label="Active Subscriptions"
           value={String(stats.activeSubscriptions)}
-          hint={`${stats.trialLandlords} landlords on trial`}
-        />
-        <StatCard
-          label="Open support"
-          value={String(stats.openSupport)}
-          hint="Needs reply"
-          tone={stats.openSupport ? 'amber' : 'default'}
-          icon={MessageSquare}
+          icon={Layers}
+          iconVariant="blue"
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="admin-card p-6 lg:col-span-2">
-          <div className="admin-panel-head">
-            <div>
-              <p className="admin-panel-title">Needs your attention</p>
-              <p className="admin-panel-sub">Open support tickets and recent billing activity</p>
-            </div>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Support inbox</p>
-                <Link to={ROUTES.SUPPORT} className="admin-link">
-                  View all <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              <div className="space-y-2">
-                {openSupport.length ? (
-                  openSupport.map((msg) => (
-                    <div key={msg.id} className="rounded-xl border border-amber-100 bg-amber-50/40 px-4 py-3">
-                      <p className="text-sm font-semibold text-slate-900">{msg.subject}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        {msg.from} · {msg.role} · {msg.time}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-slate-500">No open tickets</p>
-                )}
-              </div>
-            </div>
-            <div>
-              <div className="mb-2 flex items-center justify-between">
-                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recent landlord subs</p>
-                <Link to={ROUTES.SUBSCRIPTIONS} className="admin-link">
-                  View all <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-              <div className="space-y-2">
-                {recentSubs.map((sub) => (
-                  <div
-                    key={sub.id}
-                    className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">{sub.userName}</p>
-                      <p className="text-xs text-slate-500">
-                        {sub.plan} · {sub.billing}
-                      </p>
-                    </div>
-                    <span className="text-sm font-bold text-slate-900">{sub.amount ? formatMoney(sub.amount) : 'Free'}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="admin-card p-6">
-          <p className="admin-panel-title">User mix</p>
-          <p className="admin-panel-sub">Who is on the platform today</p>
-          <div className="mt-4 flex h-3 overflow-hidden rounded-full bg-slate-100">
-            {roleMix.map((r) => (
-              <div key={r.label} className={r.color} style={{ width: `${r.pct}%` }} title={`${r.label}: ${r.count}`} />
-            ))}
-          </div>
-          <div className="mt-4 space-y-2">
-            {roleMix.map((r) => (
-              <div key={r.label} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2 text-slate-600">
-                  <span className={`h-2.5 w-2.5 rounded-full ${r.color}`} />
-                  {r.label}
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {r.count} <span className="text-xs font-normal text-slate-400">({r.pct}%)</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Dual Visual Charts: User Growth & Subscription Revenue */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <UserGrowthDualBarChart />
+        <RevenueSplineChart />
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { to: ROUTES.ANALYTICS, label: 'View analytics', desc: 'Charts & growth trends', icon: BarChart3 },
-          { to: ROUTES.USERS, label: 'Manage users', desc: `${stats.totalUsers} accounts`, icon: UserPlus },
-          { to: ROUTES.SUBSCRIPTIONS, label: 'Landlord billing', desc: `${stats.activeSubscriptions} active plans`, icon: CreditCard },
-          { to: ROUTES.SUPPORT, label: 'Support inbox', desc: `${stats.openSupport} open tickets`, icon: Wrench },
-        ].map(({ to, label, desc, icon: Icon }) => (
+      {/* Recent Subscriptions (Matching media_1793094701088.png) */}
+      <div className="admin-card p-6">
+        <div className="flex items-center justify-between border-b border-slate-100/80 pb-4">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 tracking-tight">Recent Subscriptions</h3>
+            <p className="mt-0.5 text-xs text-slate-400 font-medium">Latest landlord tier activations & renewals</p>
+          </div>
           <Link
-            key={to}
-            to={to}
-            className="admin-card flex items-center gap-3 p-4 transition hover:border-brand-200 hover:shadow-md"
+            to={ROUTES.USERS}
+            className="inline-flex items-center gap-1 text-xs font-bold text-brand-600 hover:text-brand-700 transition"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-              <Icon className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900">{label}</p>
-              <p className="text-xs text-slate-500">{desc}</p>
-            </div>
+            View all <ArrowRight className="h-3.5 w-3.5" />
           </Link>
-        ))}
+        </div>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {recentSubs.map((sub) => (
+            <div
+              key={sub.id}
+              className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4.5 flex flex-col justify-between transition hover:border-slate-200 hover:bg-slate-50/90 shadow-2xs"
+            >
+              <div>
+                <p className="text-sm font-bold text-slate-900">{sub.userName}</p>
+                <p className="mt-1 text-xs text-slate-400 font-medium">
+                  {sub.plan} Plan · {sub.billing}
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-200/60 flex items-center justify-between">
+                <span className="text-sm font-extrabold text-slate-900">
+                  {sub.amount ? formatMoney(sub.amount) : 'Free'}
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Active
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )

@@ -5,8 +5,8 @@ export function DashboardPage() {
   return (
     <>
       <PageHeader
-        title="Platform overview"
-        description="Today's snapshot — open tickets, recent billing and quick links. Charts live in Analytics."
+        title="Overview"
+        description="High-level platform metrics, tenant activity, and revenue breakdown."
       />
       <PlatformOverview />
     </>
