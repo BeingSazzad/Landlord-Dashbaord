@@ -3,7 +3,7 @@ import { ROUTES } from '@/constants/routes'
 import { PrivateRoute } from './PrivateRoute'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
-import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { ForgotPasswordPage } from '@/pages/auth/ForgotPasswordPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
 import { UsersPage } from '@/pages/users/UsersPage'
 import { SubscriptionsPage } from '@/pages/subscriptions/SubscriptionsPage'
@@ -16,7 +16,8 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 
 export const router = createBrowserRouter([
   { path: ROUTES.LOGIN, element: <LoginPage /> },
-  { path: ROUTES.REGISTER, element: <RegisterPage /> },
+  { path: ROUTES.FORGOT_PASSWORD, element: <ForgotPasswordPage /> },
+  { path: ROUTES.REGISTER, element: <Navigate to={ROUTES.LOGIN} replace /> },
   {
     element: <PrivateRoute />,
     children: [

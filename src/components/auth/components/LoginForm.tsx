@@ -84,7 +84,27 @@ export function LoginForm({ onSubmit, loading, error, demoHint }: LoginFormProps
           <p className="mt-1 text-sm text-slate-500">Enter your admin credentials</p>
           <form className="mt-6 space-y-4" onSubmit={onSubmit}>
             <Input name="email" type="email" label="Email" placeholder="admin@landlordhq.co.uk" required />
-            <Input name="password" type="password" label="Password" placeholder="••••••••" required />
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                  Password
+                </label>
+                <Link
+                  to={ROUTES.FORGOT_PASSWORD}
+                  className="text-xs font-semibold text-brand-600 hover:text-brand-700 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                required
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              />
+            </div>
             {error ? (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
             ) : null}
@@ -95,12 +115,11 @@ export function LoginForm({ onSubmit, loading, error, demoHint }: LoginFormProps
               Sign in
             </Button>
           </form>
-          <p className="mt-5 text-center text-sm text-slate-500">
-            No account?{' '}
-            <Link to={ROUTES.REGISTER} className="font-semibold text-brand-600 hover:underline">
-              Register
-            </Link>
-          </p>
+          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+            <p className="text-xs text-slate-400">
+              Need platform access? Contact your Super Administrator.
+            </p>
+          </div>
         </div>
       </div>
     </div>
