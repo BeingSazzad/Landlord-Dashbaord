@@ -5,11 +5,11 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { DashboardPage } from '@/pages/dashboard/DashboardPage'
-import { AnalyticsPage } from '@/pages/dashboard/AnalyticsPage'
 import { UsersPage } from '@/pages/users/UsersPage'
 import { SubscriptionsPage } from '@/pages/subscriptions/SubscriptionsPage'
 import { CmsPage } from '@/pages/cms/CmsPage'
 import { SupportPage } from '@/pages/support/SupportPage'
+import { TicketDetailsPage } from '@/pages/support/TicketDetailsPage'
 import { TransactionsPage } from '@/pages/transactions/TransactionsPage'
 import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -24,11 +24,12 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
-          { path: ROUTES.ANALYTICS, element: <AnalyticsPage /> },
+          { path: ROUTES.ANALYTICS, element: <Navigate to={ROUTES.DASHBOARD} replace /> },
           { path: ROUTES.USERS, element: <UsersPage /> },
           { path: ROUTES.SUBSCRIPTIONS, element: <SubscriptionsPage /> },
           { path: ROUTES.CMS, element: <CmsPage /> },
           { path: ROUTES.SUPPORT, element: <SupportPage /> },
+          { path: ROUTES.SUPPORT_TICKET, element: <TicketDetailsPage /> },
           { path: ROUTES.TRANSACTIONS, element: <TransactionsPage /> },
           { path: ROUTES.SETTINGS, element: <SettingsPage /> },
         ],

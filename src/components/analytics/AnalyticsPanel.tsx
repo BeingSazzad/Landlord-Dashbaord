@@ -62,35 +62,6 @@ export function AnalyticsPanel() {
           </div>
         </div>
       </div>
-
-      <div className="admin-table-wrap">
-        <table className="w-full">
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>Revenue</th>
-              <th>Users</th>
-              <th>Landlords</th>
-              <th>MoM users</th>
-            </tr>
-          </thead>
-          <tbody>
-            {MONTHLY_METRICS.map((m, i) => {
-              const prior = MONTHLY_METRICS[i - 1]
-              const mom = prior ? Math.round(((m.users - prior.users) / prior.users) * 100) : null
-              return (
-                <tr key={m.month}>
-                  <td className="font-semibold text-slate-900">{m.month}</td>
-                  <td>{formatMoney(m.revenue)}</td>
-                  <td>{m.users}</td>
-                  <td>{m.landlords}</td>
-                  <td>{mom !== null ? <span className="text-brand-600">+{mom}%</span> : '—'}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
     </div>
   )
 }

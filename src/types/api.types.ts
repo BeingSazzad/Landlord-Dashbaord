@@ -25,11 +25,30 @@ export interface PlatformUser {
   role: UserRole
   status: Status
   joined: string
-  /** Landlords only — how many properties they added */
+  /** Landlords only — how many properties and units they manage */
   propertyCount?: number
-  /** Landlord-only — tenants and contractors do not subscribe */
+  unitCount?: number
   plan?: string
   mrr?: number
+  activeTenantsCount?: number
+
+  /** Tenants only — persistent tenant identity across landlords */
+  currentLandlord?: {
+    name: string
+    id: number
+  }
+  currentProperty?: string
+  tenancyStatus?: 'Active AST' | 'Notice Served' | 'In-Transit' | 'Past Renter'
+  depositScheme?: string
+  rightToRent?: 'Verified' | 'Pending'
+  pastTenanciesCount?: number
+
+  /** Contractors only — certified trades servicing landlords */
+  trade?: string
+  accreditationId?: string
+  assignedLandlordsCount?: number
+  jobsCompleted?: number
+  rating?: number
 }
 
 export interface SubscriptionPlan {
