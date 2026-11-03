@@ -117,6 +117,39 @@ export interface SupportMessage {
 
 // ─── Dashboard Stats ─────────────────────────────────────────────────────────
 
+export interface AdminDashboardData {
+  totalLandlords: number
+  monthlyRevenue: number
+  activeSubscriptions: number
+}
+
+export interface MonthlyRevenueItem {
+  month: string
+  revenue: number
+}
+
+export interface MonthlyRevenueData {
+  year: number
+  totalRevenue: number
+  revenue: MonthlyRevenueItem[]
+}
+
+export interface UserGrowthItem {
+  month: string
+  landlords: number
+  tenants: number
+  contractors: number
+  total: number
+  newLandlords: number
+  newTenants: number
+  newContractors: number
+}
+
+export interface UserGrowthData {
+  year: number
+  growth: UserGrowthItem[]
+}
+
 export interface PlatformStats {
   totalUsers: number
   landlords: number
