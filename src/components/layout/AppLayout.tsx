@@ -23,7 +23,7 @@ export function AppLayout() {
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar pageTitle={pageTitle} />
         <main className="flex-1 px-4 py-5 md:px-8 md:py-6">
-          <div className="mx-auto max-w-[1400px]">
+          <div className="mx-auto ">
             <Outlet />
           </div>
         </main>

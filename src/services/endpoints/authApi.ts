@@ -1,29 +1,25 @@
 import { api } from '@/services/api'
-import type { LoginRequest, LoginResponse } from '@/types/api.types'
-import { ADMIN_CREDENTIALS } from '@/lib/constants'
+import type { ApiResponse, LoginResponseData } from '@/types'
+import type { LoginRequest } from '@/types/api.types'
 
+// ─── Auth Endpoints ───────────────────────────────────────────────────────────
+// Injected into the shared `api` instance so RTK Query can manage
+// caching, loading states, and cache invalidation automatically.
 export const authApi = api.injectEndpoints({
   endpoints: (builder) => ({
-    login: builder.mutation<LoginResponse, LoginRequest>({
-      queryFn: async ({ email, password }) => {
-        await new Promise((r) => setTimeout(r, 400))
-        if (email === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-          return {
-            data: {
-              token: 'mock-admin-jwt-token',
-              user: {
-                id: 'admin-1',
-                email,
-                name: 'Platform Admin',
-                role: 'admin',
-              },
-            },
-          }
-        }
-        return { error: { status: 401, data: { message: 'Invalid email or password' } } }
-      },
+    // POST /auth/login
+    login: builder.mutation<ApiResponse<LoginResponseData>, LoginRequest>({
+      query: (credentials) => ({
+        url: '/auth/login',
+        method: 'POST',
+        body: credentials,
+      }),
     }),
   }),
+
+  // Prevents duplicate endpoint registration in development hot-reloads
+  overrideExisting: false,
 })
 
+// Auto-generated typed hooks — import these in components/hooks
 export const { useLoginMutation } = authApi

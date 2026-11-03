@@ -1,11 +1,27 @@
 import type { Status, UserRole } from './common.types'
 
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+
 export interface AuthUser {
-  id: string
-  email: string
+  _id: string
   name: string
+  email: string
   role: UserRole
+  profileImage?: string
   avatarUrl?: string
+  gender?: string
+  status?: Status
+  phone?: string
+  countryCode?: string
+  verified?: boolean
+  nidPhoto?: string
+  property?: string | null
+  flat?: string | null
+  timezone?: string
+  isDeleted?: boolean
+  certificates?: string[]
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface LoginRequest {
@@ -13,10 +29,14 @@ export interface LoginRequest {
   password: string
 }
 
-export interface LoginResponse {
+/** Shape of data.data from POST /auth/login */
+export interface LoginResponseData {
   token: string
-  user: AuthUser
+  refreshToken: string
+  data: AuthUser
 }
+
+// ─── Platform Users ───────────────────────────────────────────────────────────
 
 export interface PlatformUser {
   id: number
@@ -31,6 +51,8 @@ export interface PlatformUser {
   plan?: string
   mrr?: number
 }
+
+// ─── Subscriptions ───────────────────────────────────────────────────────────
 
 export interface SubscriptionPlan {
   id: number
@@ -58,12 +80,16 @@ export interface Subscription {
   renews: string
 }
 
+// ─── Analytics ───────────────────────────────────────────────────────────────
+
 export interface MonthlyMetric {
   month: string
   revenue: number
   users: number
   landlords: number
 }
+
+// ─── CMS ─────────────────────────────────────────────────────────────────────
 
 export interface CmsPage {
   id: string
@@ -73,6 +99,8 @@ export interface CmsPage {
   published: boolean
   preview: string
 }
+
+// ─── Support ─────────────────────────────────────────────────────────────────
 
 export interface SupportMessage {
   id: number
@@ -87,6 +115,8 @@ export interface SupportMessage {
   repliedAt?: string
 }
 
+// ─── Dashboard Stats ─────────────────────────────────────────────────────────
+
 export interface PlatformStats {
   totalUsers: number
   landlords: number
@@ -98,6 +128,8 @@ export interface PlatformStats {
   trialLandlords: number
   openSupport: number
 }
+
+// ─── Transactions ─────────────────────────────────────────────────────────────
 
 export interface PaymentTransaction {
   id: number
@@ -112,6 +144,8 @@ export interface PaymentTransaction {
   date: string
   reference: string
 }
+
+// ─── Admin Accounts ───────────────────────────────────────────────────────────
 
 export interface AdminAccount {
   id: string

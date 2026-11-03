@@ -14,7 +14,7 @@ import { ROUTES } from '@/constants/routes'
 import { cn } from '@/lib/utils'
 import { env } from '@/config/env'
 import { useAppDispatch } from '@/store/hooks'
-import { logout } from '@/components/auth/store/authSlice'
+import { logout } from '@/store/slices/authSlice'
 
 const navItems = [
   { to: ROUTES.DASHBOARD, label: 'Overview', icon: LayoutDashboard },

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
-import { Ban, RotateCcw, Search, Trash2, UserCheck, Users, Wrench } from 'lucide-react'
-import { MOCK_USERS } from '@/lib/mockData'
+import { useEffect, useMemo, useState } from 'react'
+import { Ban, Loader2, RotateCcw, Search, Trash2, UserCheck, Users, Wrench } from 'lucide-react'
+import { useGetUsersQuery } from '@/services/endpoints/usersApi'
 import { cn, formatMoney } from '@/lib/utils'
 import { Avatar } from '@/components/shared/Avatar'
 import { DataTable } from '@/components/shared/DataTable'
@@ -13,12 +13,20 @@ import { useDebounce } from '@/hooks/useDebounce'
 const FILTERS = ['all', 'landlord', 'tenant', 'contractor'] as const
 
 export function UsersTable() {
-  const [users, setUsers] = useState<PlatformUser[]>(() => [...MOCK_USERS])
+  const { data: remoteUsers = [], isLoading, isFetching } = useGetUsersQuery()
+  const [users, setUsers] = useState<PlatformUser[]>([])
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>('all')
   const [removeTarget, setRemoveTarget] = useState<PlatformUser | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const debouncedQuery = useDebounce(query, 200)
+
+  // Sync RTK Query cache with local view state
+  useEffect(() => {
+    if (remoteUsers.length) {
+      setUsers(remoteUsers)
+    }
+  }, [remoteUsers])
 
   const rows = useMemo(() => {
     return users.filter((user) => {
@@ -218,24 +226,39 @@ export function UsersTable() {
           />
         </div>
 
-        <div className="segmented-track shrink-0">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setFilter(f)}
-              className={cn(
-                'segmented-item capitalize',
-                filter === f ? 'segmented-item-active' : 'segmented-item-inactive'
-              )}
-            >
-              {f}
-            </button>
-          ))}
+        <div className="flex items-center gap-3">
+          {isFetching && !isLoading && (
+            <span className="flex items-center gap-1.5 text-xs text-slate-400">
+              <Loader2 className="h-3 w-3 animate-spin text-brand-600" /> Syncing
+            </span>
+          )}
+
+          <div className="segmented-track shrink-0">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                className={cn(
+                  'segmented-item capitalize',
+                  filter === f ? 'segmented-item-active' : 'segmented-item-inactive'
+                )}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <DataTable columns={columns} data={rows} emptyMessage="No users match your filters." />
+      {isLoading ? (
+        <div className="admin-card p-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+          <Loader2 className="h-7 w-7 animate-spin text-brand-600" />
+          <p className="text-sm font-medium">Loading user directory...</p>
+        </div>
+      ) : (
+        <DataTable columns={columns} data={rows} emptyMessage="No users match your filters." />
+      )}
 
       <Modal
         open={!!removeTarget}

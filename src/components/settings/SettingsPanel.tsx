@@ -13,7 +13,7 @@ import {
 } from 'lucide-react'
 import { MOCK_ADMINS } from '@/lib/mockData'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { updateProfile } from '@/components/auth/store/authSlice'
+import { updateProfile } from '@/store/slices/authSlice'
 import { Avatar } from '@/components/shared/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
