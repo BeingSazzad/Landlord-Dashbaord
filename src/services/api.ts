@@ -83,6 +83,7 @@ export const api = createApi({
     'Users',
     'Dashboard',
     'Subscriptions',
+    'Packages',
     'Transactions',
     'Support',
     'Cms',

@@ -19,7 +19,7 @@ import { logout } from '@/store/slices/authSlice'
 const navItems = [
   { to: ROUTES.DASHBOARD, label: 'Overview', icon: LayoutDashboard },
   { to: ROUTES.USERS, label: 'Users', icon: Users },
-  { to: ROUTES.SUBSCRIPTIONS, label: 'Landlord subs', icon: CreditCard },
+  { to: ROUTES.SUBSCRIPTIONS, label: 'Package Plans', icon: CreditCard },
   { to: ROUTES.TRANSACTIONS, label: 'Transactions', icon: Receipt },
   { to: ROUTES.CMS, label: 'CMS', icon: FileText },
   { to: ROUTES.SUPPORT, label: 'Support', icon: LifeBuoy },

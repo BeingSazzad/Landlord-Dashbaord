@@ -149,7 +149,40 @@ export interface PlatformUser {
   portfolio?: UserPortfolio
 }
 
-// ─── Subscriptions ───────────────────────────────────────────────────────────
+// ─── Subscriptions & Packages ─────────────────────────────────────────────────
+
+export interface PackageItem {
+  _id: string
+  name: string
+  description?: string
+  monthlyPrice: number
+  yearlyPrice: number
+  stripeProductId?: string
+  stripeMonthlyPriceId?: string
+  stripeYearlyPriceId?: string
+  maxProperties: number
+  maxFlats: number
+  features: string[]
+  hasTrial?: boolean
+  trialDays?: number
+  isPopular?: boolean
+  isActive?: boolean
+  isDeleted?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CreatePackageRequest {
+  name: string
+  description: string
+  monthlyPrice: number
+  yearlyPrice: number
+  maxProperties: number
+  maxFlats: number
+  features: string[]
+}
+
+export type UpdatePackageRequest = Partial<CreatePackageRequest>
 
 export interface SubscriptionPlan {
   id: number
