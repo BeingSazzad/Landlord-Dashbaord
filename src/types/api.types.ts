@@ -294,16 +294,69 @@ export interface PlatformStats {
 
 // ─── Transactions ─────────────────────────────────────────────────────────────
 
+export interface TransactionSummaryStats {
+  totalCollected: number
+  formattedTotalCollected: string
+  currency: string
+  currencySymbol: string
+  totalTransactions: number
+  payingLandlords: number
+}
+
+export interface TransactionLandlord {
+  id: string
+  name: string
+  email: string
+  profileImage?: string
+}
+
+export interface AdminTransactionItem {
+  id: string
+  transactionId: string
+  invoiceNumber: string
+  landlord: TransactionLandlord
+  plan: string
+  billing: string
+  amount: number
+  formattedAmount: string
+  currency: string
+  currencySymbol: string
+  method: string
+  status: string
+  date: string
+  formattedDate: string
+  invoiceUrl?: string
+  invoicePdf?: string
+}
+
+export interface GetTransactionsParams {
+  page?: number
+  limit?: number
+  status?: string
+}
+
+export interface GetTransactionsResponse {
+  success: boolean
+  message: string
+  data: AdminTransactionItem[]
+  meta: {
+    page: number
+    limit: number
+    total: number
+    totalPage: number
+  }
+}
+
 export interface PaymentTransaction {
-  id: number
-  userId: number
+  id: number | string
+  userId: number | string
   userName: string
   email: string
   plan: string
   amount: number
-  billing: 'monthly' | 'yearly'
-  method: 'card' | 'bank'
-  status: 'completed' | 'failed' | 'refunded'
+  billing: 'monthly' | 'yearly' | string
+  method: 'card' | 'bank' | string
+  status: 'completed' | 'failed' | 'refunded' | string
   date: string
   reference: string
 }
