@@ -23,11 +23,7 @@ const baseQuery = fetchBaseQuery({
   },
 })
 
-// ─── Base Query With Re-auth ──────────────────────────────────────────────────
-// On a 401 Unauthorized response:
-//   1. Attempts a token refresh using the stored refreshToken.
-//   2. If refresh succeeds → stores new credentials and retries the original request.
-//   3. If refresh fails   → dispatches logout() so the user is sent to /login.
+
 const baseQueryWithReauth: BaseQueryFn<
   string | FetchArgs,
   unknown,
@@ -81,9 +77,7 @@ export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithReauth,
 
-  // Tag types used for cache invalidation across all injected endpoints.
-  // When a mutation provides/invalidates a tag, RTK Query auto-refetches
-  // any active query that provides that same tag.
+
   tagTypes: [
     'Auth',
     'Users',
