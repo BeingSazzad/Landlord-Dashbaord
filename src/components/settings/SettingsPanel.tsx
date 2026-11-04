@@ -98,7 +98,6 @@ export function SettingsPanel() {
   const [newAdminName, setNewAdminName] = useState('')
   const [newAdminEmail, setNewAdminEmail] = useState('')
   const [newAdminPassword, setNewAdminPassword] = useState('')
-  const [newAdminRole, setNewAdminRole] = useState<'admin' | 'super_admin'>('admin')
   const [deleteAdminTarget, setDeleteAdminTarget] = useState<AdminItem | null>(null)
   const [adminSearch, setAdminSearch] = useState('')
 
@@ -233,13 +232,12 @@ export function SettingsPanel() {
         name: newAdminName.trim(),
         email: newAdminEmail.trim(),
         password: newAdminPassword.trim(),
-        role: newAdminRole,
+        role: 'admin',
       }).unwrap()
 
       setNewAdminName('')
       setNewAdminEmail('')
       setNewAdminPassword('')
-      setNewAdminRole('admin')
       setShowAddAdmin(false)
       flash('Admin account created successfully.')
     } catch (err: any) {
@@ -678,7 +676,6 @@ export function SettingsPanel() {
                   setNewAdminName('')
                   setNewAdminEmail('')
                   setNewAdminPassword('')
-                  setNewAdminRole('admin')
                   setShowAddAdmin(true)
                 }}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-brand-700 cursor-pointer shrink-0"
@@ -870,15 +867,13 @@ export function SettingsPanel() {
             required
           />
           <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Role Permissions</label>
-            <select
-              value={newAdminRole}
-              onChange={(e) => setNewAdminRole(e.target.value as 'admin' | 'super_admin')}
-              className="admin-input w-full text-xs font-semibold"
-            >
-              <option value="admin">Admin (Standard Operations)</option>
-              <option value="super_admin">Super Admin (Full Console Access)</option>
-            </select>
+            <label className="text-xs font-bold text-slate-700 block mb-1">Role</label>
+            <input
+              type="text"
+              value="Admin"
+              readOnly
+              className="admin-input w-full text-xs font-semibold bg-slate-50 text-slate-600 cursor-not-allowed"
+            />
           </div>
         </div>
       </Modal>
