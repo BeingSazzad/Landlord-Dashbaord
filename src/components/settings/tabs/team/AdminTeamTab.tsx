@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Loader2, Plus, Search } from 'lucide-react'
+import { Loader2, Plus,  } from 'lucide-react'
 import {
   useGetAdminsQuery,
   useUpdateAdminStatusMutation,
@@ -63,7 +63,7 @@ export function AdminTeamTab({ onFlash }: AdminTeamTabProps) {
       {/* Top Search bar and Add Admin Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          {/* <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" /> */}
           <input
             type="text"
             placeholder="Search by name or email..."

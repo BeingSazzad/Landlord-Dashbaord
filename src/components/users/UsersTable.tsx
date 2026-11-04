@@ -4,7 +4,6 @@ import {
   CheckCircle,
   Eye,
   Loader2,
-  Search,
   Trash2,
   UserCheck,
   Users,
@@ -279,7 +278,7 @@ export function UsersTable() {
       {/* Control Bar: Search on Left, Segmented Track on Right */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          {/* <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" /> */}
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
