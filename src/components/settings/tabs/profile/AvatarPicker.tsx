@@ -31,7 +31,7 @@ export function AvatarPicker({
   return (
     <>
       <div className="relative">
-        <Avatar name={name || 'Super Admin'} src={previewUrl || imageUrl} size="lg" />
+        <Avatar name={name || 'Super Admin'} src={previewUrl || imageUrl} size="lg"  />
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
