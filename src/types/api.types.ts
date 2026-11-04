@@ -219,7 +219,41 @@ export interface MonthlyMetric {
   landlords: number
 }
 
-// ─── CMS ─────────────────────────────────────────────────────────────────────
+// ─── CMS & App Options ────────────────────────────────────────────────────────
+
+export type AppOptionType = 'trade' | 'communal_area' | 'issue_type' | 'property_type'
+
+export interface AppOptionItem {
+  _id: string
+  name: string
+  type: AppOptionType
+  isActive?: boolean
+  isDeleted?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CreateAppOptionRequest {
+  name: string
+  type: AppOptionType
+}
+
+export interface UpdateAppOptionRequest {
+  name: string
+  type: AppOptionType
+}
+
+export interface GetAppOptionsResponse {
+  success: boolean
+  message: string
+  data: AppOptionItem[]
+  meta?: {
+    page: number
+    limit: number
+    total: number
+    totalPage: number
+  }
+}
 
 export interface CmsPage {
   id: string

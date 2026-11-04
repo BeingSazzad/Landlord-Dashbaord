@@ -87,6 +87,7 @@ export const api = createApi({
     'Transactions',
     'Support',
     'Cms',
+    'AppOptions',
     'Settings',
   ],
 
