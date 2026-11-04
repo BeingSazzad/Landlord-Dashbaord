@@ -1,6 +1,6 @@
 import { api } from '@/services/api'
 import type { ApiResponse, LoginResponseData } from '@/types'
-import type { LoginRequest } from '@/types/api.types'
+import type { ChangePasswordRequest, LoginRequest } from '@/types/api.types'
 
 // ─── Auth Endpoints ───────────────────────────────────────────────────────────
 // Injected into the shared `api` instance so RTK Query can manage
@@ -15,6 +15,15 @@ export const authApi = api.injectEndpoints({
         body: credentials,
       }),
     }),
+
+    // POST /auth/change-password
+    changePassword: builder.mutation<ApiResponse<unknown>, ChangePasswordRequest>({
+      query: (body) => ({
+        url: '/auth/change-password',
+        method: 'POST',
+        body,
+      }),
+    }),
   }),
 
   // Prevents duplicate endpoint registration in development hot-reloads
@@ -22,4 +31,4 @@ export const authApi = api.injectEndpoints({
 })
 
 // Auto-generated typed hooks — import these in components/hooks
-export const { useLoginMutation } = authApi
+export const { useLoginMutation, useChangePasswordMutation } = authApi

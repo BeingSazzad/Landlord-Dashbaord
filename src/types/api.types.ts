@@ -29,6 +29,12 @@ export interface LoginRequest {
   password: string
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
 /** Shape of data.data from POST /auth/login */
 export interface LoginResponseData {
   token: string

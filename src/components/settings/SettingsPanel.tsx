@@ -3,6 +3,8 @@ import {
   Bell,
   Camera,
   CheckCircle2,
+  Eye,
+  EyeOff,
   KeyRound,
   Loader2,
   Plus,
@@ -13,6 +15,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
+import { useChangePasswordMutation } from '@/services/endpoints/authApi'
 import {
   useGetUserProfileQuery,
   useUpdateUserProfileMutation,
@@ -39,6 +42,7 @@ export function SettingsPanel() {
     isFetching: isProfileFetching,
   } = useGetUserProfileQuery()
   const [updateUserProfile, { isLoading: isUpdatingProfile }] = useUpdateUserProfileMutation()
+  const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation()
 
   const currentProfile = profileResponse?.data || user
 
@@ -72,6 +76,9 @@ export function SettingsPanel() {
   const [currentPw, setCurrentPw] = useState('')
   const [newPw, setNewPw] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
+  const [showCurrentPw, setShowCurrentPw] = useState(false)
+  const [showNewPw, setShowNewPw] = useState(false)
+  const [showConfirmPw, setShowConfirmPw] = useState(false)
 
   // Team Admin States
   const [admins, setAdmins] = useState<AdminAccount[]>(() => [...MOCK_ADMINS])
@@ -154,15 +161,35 @@ export function SettingsPanel() {
   }
 
   // ─── Security Handlers ────────────────────────────────────────────────────
-  const savePassword = () => {
-    if (!currentPw || !newPw || newPw !== confirmPw) {
-      flash('Please ensure all password fields match and are filled.')
+  const savePassword = async () => {
+    if (!currentPw || !newPw || !confirmPw) {
+      flash('Please ensure all password fields are filled.')
       return
     }
-    setCurrentPw('')
-    setNewPw('')
-    setConfirmPw('')
-    flash('Admin password updated successfully.')
+    if (newPw !== confirmPw) {
+      flash('New password and confirm password do not match.')
+      return
+    }
+    if (newPw.length < 6) {
+      flash('New password must be at least 6 characters.')
+      return
+    }
+
+    try {
+      await changePassword({
+        currentPassword: currentPw,
+        newPassword: newPw,
+        confirmPassword: confirmPw,
+      }).unwrap()
+
+      setCurrentPw('')
+      setNewPw('')
+      setConfirmPw('')
+      flash('Admin password updated successfully.')
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to update password. Please check your current password.'
+      flash(msg)
+    }
   }
 
   // ─── Team Admin Handlers ──────────────────────────────────────────────────
@@ -426,39 +453,76 @@ export function SettingsPanel() {
           <div className="mt-5 space-y-4">
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1">Current Password</label>
-              <input
-                type="password"
-                className="admin-input w-full"
-                value={currentPw}
-                onChange={(e) => setCurrentPw(e.target.value)}
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  type={showCurrentPw ? 'text' : 'password'}
+                  className="admin-input w-full pr-10"
+                  value={currentPw}
+                  onChange={(e) => setCurrentPw(e.target.value)}
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPw(!showCurrentPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                  tabIndex={-1}
+                  aria-label={showCurrentPw ? 'Hide password' : 'Show password'}
+                >
+                  {showCurrentPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1">New Password</label>
-              <input
-                type="password"
-                className="admin-input w-full"
-                value={newPw}
-                onChange={(e) => setNewPw(e.target.value)}
-                placeholder="At least 8 characters"
-              />
+              <div className="relative">
+                <input
+                  type={showNewPw ? 'text' : 'password'}
+                  className="admin-input w-full pr-10"
+                  value={newPw}
+                  onChange={(e) => setNewPw(e.target.value)}
+                  placeholder="At least 6 characters"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPw(!showNewPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                  tabIndex={-1}
+                  aria-label={showNewPw ? 'Hide password' : 'Show password'}
+                >
+                  {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <div>
               <label className="text-xs font-bold text-slate-700 block mb-1">Confirm New Password</label>
-              <input
-                type="password"
-                className="admin-input w-full"
-                value={confirmPw}
-                onChange={(e) => setConfirmPw(e.target.value)}
-                placeholder="Confirm password"
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPw ? 'text' : 'password'}
+                  className="admin-input w-full pr-10"
+                  value={confirmPw}
+                  onChange={(e) => setConfirmPw(e.target.value)}
+                  placeholder="Confirm password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPw(!showConfirmPw)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer p-1"
+                  tabIndex={-1}
+                  aria-label={showConfirmPw ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
 
             <div className="pt-2">
-              <Button onClick={savePassword} className="!bg-brand-600 hover:!bg-brand-700 font-bold">
+              <Button
+                onClick={savePassword}
+                loading={isChangingPassword}
+                className="!bg-brand-600 hover:!bg-brand-700 font-bold"
+              >
                 Update Password
               </Button>
             </div>
