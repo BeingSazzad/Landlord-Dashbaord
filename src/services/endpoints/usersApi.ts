@@ -1,6 +1,8 @@
 import { api } from '@/services/api'
+import { updateProfile } from '@/store/slices/authSlice'
 import type {
   ApiResponse,
+  AuthUser,
   GetUsersParams,
   GetUsersResponse,
   LandlordFullDetailsData,
@@ -8,6 +10,48 @@ import type {
 
 export const usersApi = api.injectEndpoints({
   endpoints: (builder) => ({
+    // GET /users/profile
+    getUserProfile: builder.query<ApiResponse<AuthUser>, void>({
+      query: () => ({
+        url: '/users/profile',
+        method: 'GET',
+      }),
+      providesTags: [{ type: 'Users', id: 'PROFILE' }],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          if (data?.data) {
+            dispatch(updateProfile(data.data))
+          }
+        } catch {
+          // ignore
+        }
+      },
+    }),
+
+    // PATCH /users (accepts FormData with text field 'data' & file 'profileImage')
+    updateUserProfile: builder.mutation<ApiResponse<AuthUser>, FormData>({
+      query: (formData) => ({
+        url: '/users',
+        method: 'PATCH',
+        body: formData,
+      }),
+      invalidatesTags: [
+        { type: 'Users', id: 'PROFILE' },
+        { type: 'Users', id: 'LIST' },
+      ],
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled
+          if (data?.data) {
+            dispatch(updateProfile(data.data))
+          }
+        } catch {
+          // ignore
+        }
+      },
+    }),
+
     // GET /users
     getUsers: builder.query<GetUsersResponse, GetUsersParams | void>({
       query: (params) => ({
@@ -62,6 +106,8 @@ export const usersApi = api.injectEndpoints({
 })
 
 export const {
+  useGetUserProfileQuery,
+  useUpdateUserProfileMutation,
   useGetUsersQuery,
   useGetUserFullDetailsQuery,
   useLazyGetUserFullDetailsQuery,

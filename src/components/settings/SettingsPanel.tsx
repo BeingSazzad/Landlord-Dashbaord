@@ -1,44 +1,83 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import {
   Bell,
   Camera,
   CheckCircle2,
   KeyRound,
+  Loader2,
   Plus,
   Search,
   ShieldCheck,
   Trash2,
   User,
   Users,
+  X,
 } from 'lucide-react'
-import { MOCK_ADMINS } from '@/lib/mockData'
-import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { updateProfile } from '@/store/slices/authSlice'
+import {
+  useGetUserProfileQuery,
+  useUpdateUserProfileMutation,
+} from '@/services/endpoints/usersApi'
+import { useAppSelector } from '@/store/hooks'
 import { Avatar } from '@/components/shared/Avatar'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { cn } from '@/lib/utils'
+import { MOCK_ADMINS } from '@/lib/mockData'
 import type { AdminAccount } from '@/types/api.types'
 
 type SettingsTab = 'profile' | 'security' | 'notifications' | 'team'
 
 export function SettingsPanel() {
-  const dispatch = useAppDispatch()
   const user = useAppSelector((s) => s.auth.user)
   const fileRef = useRef<HTMLInputElement>(null)
 
+  // ─── RTK Query Profile API Hooks ──────────────────────────────────────────
+  const {
+    data: profileResponse,
+    isLoading: isProfileLoading,
+    isFetching: isProfileFetching,
+  } = useGetUserProfileQuery()
+  const [updateUserProfile, { isLoading: isUpdatingProfile }] = useUpdateUserProfileMutation()
+
+  const currentProfile = profileResponse?.data || user
+
+  // Navigation tab
   const [tab, setTab] = useState<SettingsTab>('profile')
-  const [name, setName] = useState(user?.name || 'Sazzad Chowdhury')
-  const [email, setEmail] = useState(user?.email || 'admin@landlordhq.co.uk')
+
+  // Profile Form States
+  const [name, setName] = useState(currentProfile?.name || 'Super Admin')
+  const [email, setEmail] = useState(currentProfile?.email || 'admin@gmail.com')
+  const [phone, setPhone] = useState(currentProfile?.phone || '')
+  const [gender, setGender] = useState(currentProfile?.gender || 'male')
+  const [timezone, setTimezone] = useState(currentProfile?.timezone || 'Asia/Dhaka')
+
+  // Avatar Upload States
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  // Sync profile data when GET /users/profile responds
+  useEffect(() => {
+    if (profileResponse?.data) {
+      const data = profileResponse.data
+      if (data.name) setName(data.name)
+      if (data.email) setEmail(data.email)
+      if (data.phone) setPhone(data.phone)
+      if (data.gender) setGender(data.gender)
+      if (data.timezone) setTimezone(data.timezone)
+    }
+  }, [profileResponse?.data])
+
+  // Security Form States
   const [currentPw, setCurrentPw] = useState('')
   const [newPw, setNewPw] = useState('')
   const [confirmPw, setConfirmPw] = useState('')
+
+  // Team Admin States
   const [admins, setAdmins] = useState<AdminAccount[]>(() => [...MOCK_ADMINS])
   const [showAddAdmin, setShowAddAdmin] = useState(false)
   const [newAdminName, setNewAdminName] = useState('')
   const [newAdminEmail, setNewAdminEmail] = useState('')
-  const [notice, setNotice] = useState<string | null>(null)
   const [adminSearch, setAdminSearch] = useState('')
 
   // Notifications State for Landlord HQ
@@ -48,23 +87,73 @@ export function SettingsPanel() {
     weeklyDigest: false,
   })
 
+  // Toast / Flash Notification
+  const [notice, setNotice] = useState<string | null>(null)
   const flash = (msg: string) => {
     setNotice(msg)
-    window.setTimeout(() => setNotice(null), 3000)
+    window.setTimeout(() => setNotice(null), 3500)
   }
 
-  const saveProfile = () => {
-    dispatch(updateProfile({ name: name.trim(), email: email.trim() }))
-    flash('Admin profile updated successfully.')
-  }
-
+  // ─── Profile Handlers ─────────────────────────────────────────────────────
   const onAvatarPick = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    dispatch(updateProfile({ avatarUrl: URL.createObjectURL(file) }))
-    flash('Profile avatar updated.')
+    setSelectedFile(file)
+    setPreviewUrl(URL.createObjectURL(file))
+    flash('New avatar image selected. Click "Save Profile Changes" to upload.')
   }
 
+  const cancelAvatarPick = () => {
+    setSelectedFile(null)
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
+  }
+
+  const handleSaveProfile = async () => {
+    if (!name.trim()) {
+      flash('Full name cannot be empty.')
+      return
+    }
+
+    try {
+      const formData = new FormData()
+
+      // Exact match to Postman screenshot:
+      // Key "data" -> JSON stringified object
+      const dataPayload: Record<string, any> = {
+        name: name.trim(),
+      }
+      if (phone.trim()) {
+        dataPayload.phone = phone.trim()
+      }
+      if (gender) {
+        dataPayload.gender = gender
+      }
+      if (timezone) {
+        dataPayload.timezone = timezone
+      }
+
+      formData.append('data', JSON.stringify(dataPayload))
+
+      // Key "profileImage" -> binary file
+      if (selectedFile) {
+        formData.append('profileImage', selectedFile)
+      }
+
+      await updateUserProfile(formData).unwrap()
+
+      setSelectedFile(null)
+      setPreviewUrl(null)
+      flash('Profile updated successfully!')
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to update profile. Please check your network connection.'
+      flash(msg)
+    }
+  }
+
+  // ─── Security Handlers ────────────────────────────────────────────────────
   const savePassword = () => {
     if (!currentPw || !newPw || newPw !== confirmPw) {
       flash('Please ensure all password fields match and are filled.')
@@ -76,6 +165,7 @@ export function SettingsPanel() {
     flash('Admin password updated successfully.')
   }
 
+  // ─── Team Admin Handlers ──────────────────────────────────────────────────
   const addAdmin = () => {
     if (!newAdminName.trim() || !newAdminEmail.trim()) return
     setAdmins((prev) => [
@@ -115,7 +205,7 @@ export function SettingsPanel() {
         </div>
       )}
 
-      {/* Standard Tab Navigation Header matching CMS */}
+      {/* Standard Tab Navigation Header */}
       <div className="border-b border-slate-200/80">
         <nav className="flex space-x-8">
           <button
@@ -182,63 +272,147 @@ export function SettingsPanel() {
       {/* TAB 1: PROFILE */}
       {tab === 'profile' && (
         <div className="admin-card max-w-2xl p-6 sm:p-7">
-          <div className="flex items-center gap-4 border-b border-slate-100/90 pb-6">
-            <div className="relative">
-              <Avatar name={user?.name || 'Sazzad Chowdhury'} src={user?.avatarUrl} size="lg" />
+          {/* Header & Avatar Pick */}
+          <div className="flex items-center justify-between border-b border-slate-100/90 pb-6">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <Avatar
+                  name={name || 'Super Admin'}
+                  src={previewUrl || currentProfile?.profileImage || currentProfile?.avatarUrl}
+                  size="lg"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-white shadow-md hover:bg-brand-700 transition cursor-pointer"
+                  aria-label="Change photo"
+                  title="Upload profile photo"
+                >
+                  <Camera className="h-4 w-4" />
+                </button>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onAvatarPick}
+                />
+              </div>
+
+              <div>
+                <h3 className="text-base font-bold text-slate-900">{name || 'Super Admin'}</h3>
+                <p className="text-xs text-slate-400 font-medium">{email || 'admin@gmail.com'}</p>
+                <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-extrabold text-brand-700 border border-blue-100 capitalize">
+                  <ShieldCheck className="h-3 w-3" />
+                  {currentProfile?.role ? currentProfile.role.replace('_', ' ') : 'Super Admin'}
+                </span>
+              </div>
+            </div>
+
+            {isProfileFetching && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-brand-600 font-medium">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Syncing...
+              </span>
+            )}
+          </div>
+
+          {/* Pending Photo Upload Badge */}
+          {selectedFile && (
+            <div className="mt-4 flex items-center justify-between rounded-xl bg-brand-50 border border-brand-100 px-3.5 py-2 text-xs text-brand-800">
+              <span className="truncate">
+                Staged photo: <strong>{selectedFile.name}</strong> (click Save to update)
+              </span>
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-brand-600 text-white shadow-md hover:bg-brand-700 transition cursor-pointer"
-                aria-label="Change photo"
+                onClick={cancelAvatarPick}
+                className="ml-2 p-1 text-slate-400 hover:text-slate-700 rounded cursor-pointer"
+                title="Discard photo"
               >
-                <Camera className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={onAvatarPick}
-              />
             </div>
+          )}
 
-            <div>
-              <h3 className="text-base font-bold text-slate-900">{user?.name || 'Sazzad Chowdhury'}</h3>
-              <p className="text-xs text-slate-400 font-medium">{user?.email || 'admin@landlordhq.co.uk'}</p>
-              <span className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-extrabold text-brand-700 border border-blue-100">
-                <ShieldCheck className="h-3 w-3" />
-                Super Admin
-              </span>
+          {/* Profile Form */}
+          {isProfileLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+              <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+              <span className="text-xs">Loading profile data...</span>
             </div>
-          </div>
+          ) : (
+            <div className="mt-6 space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Full Name</label>
+                <input
+                  type="text"
+                  className="admin-input w-full"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Moshfiqur Rahman"
+                />
+              </div>
 
-          <div className="mt-6 space-y-4">
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Full Name</label>
-              <input
-                type="text"
-                className="admin-input w-full"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">
+                  Email Address <span className="text-slate-400 font-normal">(Read-only)</span>
+                </label>
+                <input
+                  type="email"
+                  className="admin-input w-full bg-slate-50 text-slate-500 cursor-not-allowed"
+                  value={email}
+                  disabled
+                />
+              </div>
 
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Email Address</label>
-              <input
-                type="email"
-                className="admin-input w-full"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Phone Number</label>
+                  <input
+                    type="text"
+                    className="admin-input w-full"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. +1234567890"
+                  />
+                </div>
 
-            <div className="pt-2">
-              <Button onClick={saveProfile} className="!bg-brand-600 hover:!bg-brand-700 font-bold">
-                Save Profile Changes
-              </Button>
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Gender</label>
+                  <select
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="admin-input w-full"
+                  >
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Timezone</label>
+                <input
+                  type="text"
+                  className="admin-input w-full"
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  placeholder="e.g. Asia/Dhaka"
+                />
+              </div>
+
+              <div className="pt-2">
+                <Button
+                  onClick={handleSaveProfile}
+                  loading={isUpdatingProfile}
+                  className="!bg-brand-600 hover:!bg-brand-700 font-bold"
+                >
+                  Save Profile Changes
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -363,7 +537,7 @@ export function SettingsPanel() {
         </div>
       )}
 
-      {/* TAB 4: ADMIN TEAM (Matching Image media_1793079535673.png) */}
+      {/* TAB 4: ADMIN TEAM */}
       {tab === 'team' && (
         <div className="space-y-5">
           {/* Top Search bar and Invite Button */}

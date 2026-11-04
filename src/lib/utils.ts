@@ -1,3 +1,5 @@
+import { env } from '@/config/env'
+
 export function cn(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ')
 }
@@ -17,4 +19,18 @@ export function initials(name: string): string {
     .join('')
     .slice(0, 2)
     .toUpperCase()
+}
+
+export function getImageUrl(path?: string | null): string | undefined {
+  if (!path) return undefined
+  if (
+    path.startsWith('http://') ||
+    path.startsWith('https://') ||
+    path.startsWith('blob:') ||
+    path.startsWith('data:')
+  ) {
+    return path
+  }
+  const origin = env.VITE_BASE_URL.replace(/\/api\/v1\/?$/, '')
+  return `${origin}${path.startsWith('/') ? '' : '/'}${path}`
 }
