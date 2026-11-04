@@ -1,8 +1,11 @@
 import { api } from '@/services/api'
 import { updateProfile } from '@/store/slices/authSlice'
 import type {
+  AdminItem,
   ApiResponse,
   AuthUser,
+  CreateAdminRequest,
+  GetAdminsResponse,
   GetUsersParams,
   GetUsersResponse,
   LandlordFullDetailsData,
@@ -101,6 +104,73 @@ export const usersApi = api.injectEndpoints({
         { type: 'Users', id: `DETAILS-${id}` },
       ],
     }),
+
+    // ─── Admin Team Endpoints ───────────────────────────────────────────────
+
+    // GET /users/admins
+    getAdmins: builder.query<
+      GetAdminsResponse,
+      { page?: number; limit?: number; search?: string } | void
+    >({
+      query: (params) => ({
+        url: '/users/admins',
+        method: 'GET',
+        params: params
+          ? {
+              ...(params.page ? { page: params.page } : {}),
+              ...(params.limit ? { limit: params.limit } : {}),
+              ...(params.search ? { search: params.search } : {}),
+            }
+          : undefined,
+      }),
+      providesTags: (result) => {
+        const raw = result?.data as any
+        const list: AdminItem[] = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+            ? raw.data
+            : []
+        return [
+          ...list.map(({ _id }) => ({ type: 'Admins' as const, id: _id })),
+          { type: 'Admins', id: 'LIST' },
+        ]
+      },
+    }),
+
+    // POST /users/create-admin
+    createAdmin: builder.mutation<ApiResponse<AdminItem>, CreateAdminRequest>({
+      query: (body) => ({
+        url: '/users/create-admin',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: [{ type: 'Admins', id: 'LIST' }],
+    }),
+
+    // PATCH /users/admin/status/:id
+    updateAdminStatus: builder.mutation<
+      ApiResponse<unknown>,
+      { id: string; status: 'active' | 'inactive' }
+    >({
+      query: ({ id, status }) => ({
+        url: `/users/admin/status/${id}`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Admins', id },
+        { type: 'Admins', id: 'LIST' },
+      ],
+    }),
+
+    // DELETE /users/admins/:id
+    deleteAdmin: builder.mutation<ApiResponse<unknown>, string>({
+      query: (id) => ({
+        url: `/users/admins/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: [{ type: 'Admins', id: 'LIST' }],
+    }),
   }),
   overrideExisting: false,
 })
@@ -112,4 +182,8 @@ export const {
   useGetUserFullDetailsQuery,
   useLazyGetUserFullDetailsQuery,
   useUpdateUserStatusMutation,
+  useGetAdminsQuery,
+  useCreateAdminMutation,
+  useUpdateAdminStatusMutation,
+  useDeleteAdminMutation,
 } = usersApi

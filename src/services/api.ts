@@ -90,6 +90,7 @@ export const api = createApi({
     'AppOptions',
     'Faqs',
     'Settings',
+    'Admins',
   ],
 
   endpoints: () => ({}),

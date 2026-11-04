@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import {
   Bell,
   Camera,
@@ -17,7 +17,11 @@ import {
 } from 'lucide-react'
 import { useChangePasswordMutation } from '@/services/endpoints/authApi'
 import {
+  useCreateAdminMutation,
+  useDeleteAdminMutation,
+  useGetAdminsQuery,
   useGetUserProfileQuery,
+  useUpdateAdminStatusMutation,
   useUpdateUserProfileMutation,
 } from '@/services/endpoints/usersApi'
 import { useAppSelector } from '@/store/hooks'
@@ -26,8 +30,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { cn } from '@/lib/utils'
-import { MOCK_ADMINS } from '@/lib/mockData'
-import type { AdminAccount } from '@/types/api.types'
+import type { AdminItem } from '@/types/api.types'
 
 type SettingsTab = 'profile' | 'security' | 'notifications' | 'team'
 
@@ -35,7 +38,7 @@ export function SettingsPanel() {
   const user = useAppSelector((s) => s.auth.user)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  // ─── RTK Query Profile API Hooks ──────────────────────────────────────────
+  // ─── RTK Query Profile & Auth Hooks ───────────────────────────────────────
   const {
     data: profileResponse,
     isLoading: isProfileLoading,
@@ -43,6 +46,16 @@ export function SettingsPanel() {
   } = useGetUserProfileQuery()
   const [updateUserProfile, { isLoading: isUpdatingProfile }] = useUpdateUserProfileMutation()
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation()
+
+  // ─── RTK Query Admin Team Hooks ───────────────────────────────────────────
+  const {
+    data: adminsResponse,
+    isLoading: isAdminsLoading,
+    isFetching: isAdminsFetching,
+  } = useGetAdminsQuery()
+  const [createAdmin, { isLoading: isCreatingAdmin }] = useCreateAdminMutation()
+  const [updateAdminStatus, { isLoading: isUpdatingStatus }] = useUpdateAdminStatusMutation()
+  const [deleteAdmin, { isLoading: isDeletingAdmin }] = useDeleteAdminMutation()
 
   const currentProfile = profileResponse?.data || user
 
@@ -81,10 +94,12 @@ export function SettingsPanel() {
   const [showConfirmPw, setShowConfirmPw] = useState(false)
 
   // Team Admin States
-  const [admins, setAdmins] = useState<AdminAccount[]>(() => [...MOCK_ADMINS])
   const [showAddAdmin, setShowAddAdmin] = useState(false)
   const [newAdminName, setNewAdminName] = useState('')
   const [newAdminEmail, setNewAdminEmail] = useState('')
+  const [newAdminPassword, setNewAdminPassword] = useState('')
+  const [newAdminRole, setNewAdminRole] = useState<'admin' | 'super_admin'>('admin')
+  const [deleteAdminTarget, setDeleteAdminTarget] = useState<AdminItem | null>(null)
   const [adminSearch, setAdminSearch] = useState('')
 
   // Notifications State for Landlord HQ
@@ -100,6 +115,22 @@ export function SettingsPanel() {
     setNotice(msg)
     window.setTimeout(() => setNotice(null), 3500)
   }
+
+  // ─── Extract Admins List ──────────────────────────────────────────────────
+  const rawAdmins = adminsResponse?.data as any
+  const adminsList: AdminItem[] = useMemo(() => {
+    if (Array.isArray(rawAdmins)) return rawAdmins
+    if (Array.isArray(rawAdmins?.data)) return rawAdmins.data
+    return []
+  }, [rawAdmins])
+
+  const filteredAdmins = useMemo(() => {
+    if (!adminSearch.trim()) return adminsList
+    const q = adminSearch.toLowerCase()
+    return adminsList.filter(
+      (a) => a.name.toLowerCase().includes(q) || a.email.toLowerCase().includes(q)
+    )
+  }, [adminsList, adminSearch])
 
   // ─── Profile Handlers ─────────────────────────────────────────────────────
   const onAvatarPick = (e: ChangeEvent<HTMLInputElement>) => {
@@ -127,8 +158,6 @@ export function SettingsPanel() {
     try {
       const formData = new FormData()
 
-      // Exact match to Postman screenshot:
-      // Key "data" -> JSON stringified object
       const dataPayload: Record<string, any> = {
         name: name.trim(),
       }
@@ -144,7 +173,6 @@ export function SettingsPanel() {
 
       formData.append('data', JSON.stringify(dataPayload))
 
-      // Key "profileImage" -> binary file
       if (selectedFile) {
         formData.append('profileImage', selectedFile)
       }
@@ -193,34 +221,54 @@ export function SettingsPanel() {
   }
 
   // ─── Team Admin Handlers ──────────────────────────────────────────────────
-  const addAdmin = () => {
-    if (!newAdminName.trim() || !newAdminEmail.trim()) return
-    setAdmins((prev) => [
-      ...prev,
-      {
-        id: `admin-${Date.now()}`,
+  const handleAddAdmin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    if (!newAdminName.trim() || !newAdminEmail.trim() || !newAdminPassword.trim()) {
+      flash('Please fill in name, email, and password.')
+      return
+    }
+
+    try {
+      await createAdmin({
         name: newAdminName.trim(),
         email: newAdminEmail.trim(),
-        role: 'admin',
-        addedAt: 'Just now',
-      },
-    ])
-    setNewAdminName('')
-    setNewAdminEmail('')
-    setShowAddAdmin(false)
-    flash(`Admin invite dispatched to ${newAdminEmail}.`)
+        password: newAdminPassword.trim(),
+        role: newAdminRole,
+      }).unwrap()
+
+      setNewAdminName('')
+      setNewAdminEmail('')
+      setNewAdminPassword('')
+      setNewAdminRole('admin')
+      setShowAddAdmin(false)
+      flash('Admin account created successfully.')
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to create admin. Please try again.'
+      flash(msg)
+    }
   }
 
-  const revokeAdmin = (id: string) => {
-    setAdmins((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, role: a.role === 'admin' ? ('revoked' as any) : 'admin' } : a))
-    )
-    flash('Admin access revoked.')
+  const handleToggleStatus = async (admin: AdminItem) => {
+    const nextStatus = admin.status === 'active' ? 'inactive' : 'active'
+    try {
+      await updateAdminStatus({ id: admin._id, status: nextStatus }).unwrap()
+      flash(`Admin status updated to "${nextStatus}".`)
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to update admin status.'
+      flash(msg)
+    }
   }
 
-  const deleteAdmin = (id: string) => {
-    setAdmins((prev) => prev.filter((a) => a.id !== id))
-    flash('Admin removed from console.')
+  const handleDeleteAdmin = async () => {
+    if (!deleteAdminTarget) return
+    try {
+      await deleteAdmin(deleteAdminTarget._id).unwrap()
+      flash(`Admin "${deleteAdminTarget.name}" deleted successfully.`)
+      setDeleteAdminTarget(null)
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to delete admin.'
+      flash(msg)
+    }
   }
 
   return (
@@ -290,7 +338,7 @@ export function SettingsPanel() {
             <Users className="h-4 w-4" />
             Admin Team
             <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[10px] text-slate-700 font-bold">
-              {admins.length}
+              {adminsList.length}
             </span>
           </button>
         </nav>
@@ -604,7 +652,7 @@ export function SettingsPanel() {
       {/* TAB 4: ADMIN TEAM */}
       {tab === 'team' && (
         <div className="space-y-5">
-          {/* Top Search bar and Invite Button */}
+          {/* Top Search bar and Add Admin Button */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -617,161 +665,252 @@ export function SettingsPanel() {
               />
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowAddAdmin(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-brand-700 cursor-pointer shrink-0"
-            >
-              <Plus className="h-4 w-4" />
-              Invite Admin
-            </button>
+            <div className="flex items-center gap-3">
+              {isAdminsFetching && (
+                <span className="inline-flex items-center gap-1 text-[11px] text-brand-600 font-medium">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Syncing...
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setNewAdminName('')
+                  setNewAdminEmail('')
+                  setNewAdminPassword('')
+                  setNewAdminRole('admin')
+                  setShowAddAdmin(true)
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs transition hover:bg-brand-700 cursor-pointer shrink-0"
+              >
+                <Plus className="h-4 w-4" />
+                Add Admin
+              </button>
+            </div>
           </div>
 
-          <div className="admin-table-wrap">
-            <table className="min-w-full text-left">
-              <thead>
-                <tr>
-                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">ADMIN</th>
-                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">EMAIL</th>
-                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">ROLE</th>
-                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">JOINED</th>
-                  <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">ACTION</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {admins
-                  .filter(
-                    (a) =>
-                      !adminSearch ||
-                      a.name.toLowerCase().includes(adminSearch.toLowerCase()) ||
-                      a.email.toLowerCase().includes(adminSearch.toLowerCase())
-                  )
-                  .map((admin) => {
-                    const isCurrentUser =
-                      admin.name.toLowerCase().includes('sazzad') ||
-                      admin.email.toLowerCase().includes('sazzad') ||
-                      admin.id === 'admin-0'
+          {/* Admins Table */}
+          {isAdminsLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+              <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+              <span className="text-xs">Loading administrators...</span>
+            </div>
+          ) : (
+            <div className="admin-table-wrap">
+              <table className="min-w-full text-left">
+                <thead>
+                  <tr>
+                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">ADMIN</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">EMAIL</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">ROLE</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">STATUS</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400">JOINED</th>
+                    <th className="py-3 px-4 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredAdmins.length > 0 ? (
+                    filteredAdmins.map((admin) => {
+                      const isCurrentUser =
+                        admin._id === user?._id ||
+                        admin.email.toLowerCase() === user?.email.toLowerCase()
 
-                    return (
-                      <tr key={admin.id} className="hover:bg-slate-50/60 transition">
-                        {/* ADMIN */}
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar name={admin.name} size="sm" />
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 text-sm">{admin.name}</span>
-                              {isCurrentUser && (
-                                <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200/60">
-                                  You
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </td>
+                      const isActive = admin.status === 'active'
 
-                        {/* EMAIL */}
-                        <td className="py-3.5 px-4 text-xs font-medium text-slate-600 font-mono">
-                          {admin.email}
-                        </td>
-
-                        {/* ROLE */}
-                        <td className="py-3.5 px-4">
-                          {admin.role === 'super' ? (
-                            <span className="inline-flex items-center rounded-full bg-brand-600 px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-white shadow-xs">
-                              SUPER ADMIN
-                            </span>
-                          ) : admin.role === ('revoked' as any) ? (
-                            <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-slate-500">
-                              REVOKED
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-brand-700">
-                              ADMIN
-                            </span>
-                          )}
-                        </td>
-
-                        {/* JOINED */}
-                        <td className="py-3.5 px-4 text-xs font-medium text-slate-500">
-                          {admin.addedAt}
-                        </td>
-
-                        {/* ACTION */}
-                        <td className="py-3.5 px-4 text-right">
-                          {!isCurrentUser ? (
-                            <div className="inline-flex items-center gap-3">
-                              <button
-                                type="button"
-                                onClick={() => revokeAdmin(admin.id)}
-                                className={cn(
-                                  'text-xs font-bold transition hover:underline cursor-pointer',
-                                  admin.role === ('revoked' as any)
-                                    ? 'text-brand-600 hover:text-brand-700'
-                                    : 'text-amber-600 hover:text-amber-700'
+                      return (
+                        <tr key={admin._id} className="hover:bg-slate-50/60 transition">
+                          {/* ADMIN */}
+                          <td className="py-3.5 px-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar name={admin.name} src={admin.profileImage} size="sm" />
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-900 text-sm">{admin.name}</span>
+                                {isCurrentUser && (
+                                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200/60">
+                                    You
+                                  </span>
                                 )}
-                              >
-                                {admin.role === ('revoked' as any) ? 'Restore' : 'Revoke'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => deleteAdmin(admin.id)}
-                                className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
-                                title="Delete Admin"
-                              >
-                                <Trash2 className="h-4 w-4 text-red-500" />
-                              </button>
+                              </div>
                             </div>
-                          ) : (
-                            <span className="text-xs text-slate-300 font-medium">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    )
-                  })}
-              </tbody>
-            </table>
-          </div>
+                          </td>
+
+                          {/* EMAIL */}
+                          <td className="py-3.5 px-4 text-xs font-medium text-slate-600 font-mono">
+                            {admin.email}
+                          </td>
+
+                          {/* ROLE */}
+                          <td className="py-3.5 px-4">
+                            {admin.role === 'super_admin' ? (
+                              <span className="inline-flex items-center rounded-full bg-brand-600 px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-white shadow-xs">
+                                SUPER ADMIN
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase text-brand-700">
+                                ADMIN
+                              </span>
+                            )}
+                          </td>
+
+                          {/* STATUS */}
+                          <td className="py-3.5 px-4">
+                            {isActive ? (
+                              <span className="inline-flex items-center rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700">
+                                ACTIVE
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[10px] font-bold uppercase text-slate-500">
+                                INACTIVE
+                              </span>
+                            )}
+                          </td>
+
+                          {/* JOINED */}
+                          <td className="py-3.5 px-4 text-xs font-medium text-slate-500">
+                            {admin.createdAt
+                              ? new Date(admin.createdAt).toLocaleDateString('en-GB', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                })
+                              : '—'}
+                          </td>
+
+                          {/* ACTION */}
+                          <td className="py-3.5 px-4 text-right">
+                            {!isCurrentUser ? (
+                              <div className="inline-flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleStatus(admin)}
+                                  disabled={isUpdatingStatus}
+                                  className={cn(
+                                    'text-xs font-bold transition hover:underline cursor-pointer',
+                                    isActive
+                                      ? 'text-amber-600 hover:text-amber-700'
+                                      : 'text-brand-600 hover:text-brand-700'
+                                  )}
+                                >
+                                  {isActive ? 'Deactivate' : 'Activate'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteAdminTarget(admin)}
+                                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                                  title="Delete Admin"
+                                >
+                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-slate-300 font-medium">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-10 text-center text-xs text-slate-400">
+                        No administrators found. Click &quot;+ Add Admin&quot; to create an admin account.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Invite Admin Modal */}
+      {/* Modal: Add New Admin */}
       <Modal
         open={showAddAdmin}
-        title="Invite Platform Administrator"
+        title="Add Platform Administrator"
         onClose={() => setShowAddAdmin(false)}
         footer={
           <div className="flex gap-2">
             <Button variant="secondary" fullWidth onClick={() => setShowAddAdmin(false)}>
               Cancel
             </Button>
-            <Button fullWidth onClick={addAdmin} className="!bg-brand-600 hover:!bg-brand-700 font-bold">
-              Send Invite
+            <Button
+              fullWidth
+              loading={isCreatingAdmin}
+              onClick={handleAddAdmin}
+              className="!bg-brand-600 hover:!bg-brand-700 font-bold"
+            >
+              Create Admin
             </Button>
           </div>
         }
       >
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           <Input
             label="Full Name"
-            placeholder="e.g. Rachel Adams"
+            placeholder="e.g. Emam Bokhari"
             value={newAdminName}
             onChange={(e) => setNewAdminName(e.target.value)}
+            required
+            autoFocus
           />
           <Input
-            label="Work Email"
+            label="Email Address"
             type="email"
-            placeholder="name@landlordhq.co.uk"
+            placeholder="emam1@gmail.com"
             value={newAdminEmail}
             onChange={(e) => setNewAdminEmail(e.target.value)}
+            required
+          />
+          <Input
+            label="Password"
+            type="password"
+            placeholder="admin123"
+            value={newAdminPassword}
+            onChange={(e) => setNewAdminPassword(e.target.value)}
+            required
           />
           <div>
             <label className="text-xs font-bold text-slate-700 block mb-1">Role Permissions</label>
-            <select className="admin-input w-full text-xs font-semibold">
-              <option value="admin">Operations Admin (Support & Billing)</option>
-              <option value="super">Super Admin (Full Console Access)</option>
+            <select
+              value={newAdminRole}
+              onChange={(e) => setNewAdminRole(e.target.value as 'admin' | 'super_admin')}
+              className="admin-input w-full text-xs font-semibold"
+            >
+              <option value="admin">Admin (Standard Operations)</option>
+              <option value="super_admin">Super Admin (Full Console Access)</option>
             </select>
           </div>
         </div>
+      </Modal>
+
+      {/* Modal: Delete Admin Confirmation */}
+      <Modal
+        open={Boolean(deleteAdminTarget)}
+        title="Delete Administrator?"
+        onClose={() => setDeleteAdminTarget(null)}
+        footer={
+          <div className="flex gap-2">
+            <Button variant="secondary" fullWidth onClick={() => setDeleteAdminTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              className="!bg-red-600 hover:!bg-red-700 font-bold"
+              loading={isDeletingAdmin}
+              onClick={handleDeleteAdmin}
+            >
+              Delete Admin
+            </Button>
+          </div>
+        }
+      >
+        {deleteAdminTarget && (
+          <p className="text-sm text-slate-600">
+            Are you sure you want to delete administrator{' '}
+            <strong className="text-slate-900">{deleteAdminTarget.name}</strong> ({deleteAdminTarget.email})?
+            This will permanently remove their admin account.
+          </p>
+        )}
       </Modal>
     </div>
   )

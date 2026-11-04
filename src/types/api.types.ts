@@ -431,6 +431,43 @@ export interface PaymentTransaction {
 
 // ─── Admin Accounts ───────────────────────────────────────────────────────────
 
+export interface AdminItem {
+  _id: string
+  name: string
+  role: string
+  email: string
+  profileImage?: string
+  status: 'active' | 'inactive' | string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface GetAdminsResponse {
+  success: boolean
+  message: string
+  data: {
+    data: AdminItem[]
+    meta: {
+      page: number
+      limit: number
+      total: number
+      totalPage: number
+    }
+  }
+}
+
+export interface CreateAdminRequest {
+  name: string
+  email: string
+  password: string
+  role: 'admin' | 'super_admin' | string
+}
+
+export interface UpdateAdminStatusRequest {
+  id: string
+  status: 'active' | 'inactive'
+}
+
 export interface AdminAccount {
   id: string
   name: string
