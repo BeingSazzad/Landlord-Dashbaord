@@ -28,14 +28,19 @@ import {
   useGetAppOptionsQuery,
   useUpdateAppOptionMutation,
 } from '@/services/endpoints/appOptionsApi'
+import {
+  useCreateFaqMutation,
+  useDeleteFaqMutation,
+  useGetFaqsQuery,
+  useUpdateFaqMutation,
+} from '@/services/endpoints/faqsApi'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
-import type { AppOptionItem, AppOptionType } from '@/types/api.types'
+import type { AppOptionItem, AppOptionType, FaqItem, FaqRole } from '@/types/api.types'
 
 type CmsSection = 'options' | 'faqs' | 'privacy' | 'terms' | 'about'
-type FaqAudience = 'landlords' | 'tenants' | 'contractors'
 
 interface PolicyDocument {
   id: string
@@ -43,13 +48,6 @@ interface PolicyDocument {
   updated: string
   readTime: string
   content: string
-}
-
-interface FaqItem {
-  id: string
-  audience: FaqAudience
-  question: string
-  answer: string
 }
 
 const INITIAL_POLICIES: Record<string, PolicyDocument> = {
@@ -109,44 +107,6 @@ Landlord HQ is the dedicated property management platform for modern UK landlord
   },
 }
 
-const INITIAL_FAQS: FaqItem[] = [
-  {
-    id: 'f-1',
-    audience: 'landlords',
-    question: 'How does Landlord HQ automate Gas Safety (CP12) and EICR compliance tracking?',
-    answer:
-      'Landlord HQ tracks statutory certification dates across your entire property portfolio. You receive automated alerts 60, 30, and 7 days prior to expiry, with one-click dispatch to certified Gas Safe and NICEIC contractors.',
-  },
-  {
-    id: 'f-2',
-    audience: 'landlords',
-    question: 'How are tenant security deposits registered with the DPS or TDS?',
-    answer:
-      'When a tenant completes their deposit transfer through Landlord HQ, the funds are registered automatically with your linked Tenancy Deposit Scheme (TDP) within 30 days, generating statutory Prescribed Information documentation.',
-  },
-  {
-    id: 'f-3',
-    audience: 'landlords',
-    question: 'Can I assign granular permissions to property managers or letting agents?',
-    answer:
-      'Yes. Landlords on the Portfolio Plan can invite team members with specific permission roles: Viewing Coordinator, Maintenance Manager, or Financial Accountant.',
-  },
-  {
-    id: 'f-4',
-    audience: 'tenants',
-    question: 'How do I submit an urgent repair or maintenance request?',
-    answer:
-      'Log into the Tenant Portal, navigate to Maintenance, tap "Report Issue", upload photos/video, and select the urgency. Your landlord and assigned contractor will receive immediate notification.',
-  },
-  {
-    id: 'f-5',
-    audience: 'contractors',
-    question: 'How do tradespeople verify their Gas Safe or NICEIC certifications on the platform?',
-    answer:
-      'Contractors upload their registration license numbers and public liability insurance documents during onboarding. Our compliance team verifies credentials with statutory bodies within 24 hours.',
-  },
-]
-
 const OPTION_TABS: { label: string; type: AppOptionType }[] = [
   { label: 'Issue type', type: 'issue_type' },
   { label: 'Primary Trade', type: 'trade' },
@@ -158,9 +118,12 @@ export function CmsPanel() {
   // Left menu navigation state
   const [activeSection, setActiveSection] = useState<CmsSection>('options')
 
-  // App Options API Hooks
-  const { data: optionsResponse, isLoading: isOptionsLoading, isFetching: isOptionsFetching } =
-    useGetAppOptionsQuery()
+  // ─── App Options API Hooks ────────────────────────────────────────────────
+  const {
+    data: optionsResponse,
+    isLoading: isOptionsLoading,
+    isFetching: isOptionsFetching,
+  } = useGetAppOptionsQuery()
   const [createAppOption, { isLoading: isCreatingOption }] = useCreateAppOptionMutation()
   const [updateAppOption, { isLoading: isUpdatingOption }] = useUpdateAppOptionMutation()
   const [deleteAppOption, { isLoading: isDeletingOption }] = useDeleteAppOptionMutation()
@@ -175,22 +138,35 @@ export function CmsPanel() {
   const [optionTypeInput, setOptionTypeInput] = useState<AppOptionType>('trade')
   const [deleteOptionTarget, setDeleteOptionTarget] = useState<AppOptionItem | null>(null)
 
-  // Policy Documents State
+  // ─── FAQs API Hooks ───────────────────────────────────────────────────────
+  const [faqRole, setFaqRole] = useState<FaqRole>('landlord')
+  const [faqSearch, setFaqSearch] = useState<string>('')
+  const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null)
+
+  const {
+    data: faqsResponse,
+    isLoading: isFaqsLoading,
+    isFetching: isFaqsFetching,
+  } = useGetFaqsQuery({ role: faqRole })
+
+  const [createFaq, { isLoading: isCreatingFaq }] = useCreateFaqMutation()
+  const [updateFaq, { isLoading: isUpdatingFaq }] = useUpdateFaqMutation()
+  const [deleteFaq, { isLoading: isDeletingFaq }] = useDeleteFaqMutation()
+
+  // Modals for FAQs
+  const [isFaqModalOpen, setIsFaqModalOpen] = useState(false)
+  const [editingFaq, setEditingFaq] = useState<FaqItem | null>(null)
+  const [faqQuestionInput, setFaqQuestionInput] = useState('')
+  const [faqAnswerInput, setFaqAnswerInput] = useState('')
+  const [faqRoleInput, setFaqRoleInput] = useState<FaqRole>('landlord')
+  const [deleteFaqTarget, setDeleteFaqTarget] = useState<FaqItem | null>(null)
+
+  // ─── Policy Documents State ───────────────────────────────────────────────
   const [policies, setPolicies] = useState(INITIAL_POLICIES)
   const [editingPolicyKey, setEditingPolicyKey] = useState<string | null>(null)
   const [policyContent, setPolicyContent] = useState<string>('')
 
-  // FAQs state
-  const [faqs, setFaqs] = useState<FaqItem[]>(INITIAL_FAQS)
-  const [faqAudience, setFaqAudience] = useState<FaqAudience>('landlords')
-  const [faqSearch, setFaqSearch] = useState<string>('')
-  const [expandedFaqId, setExpandedFaqId] = useState<string | null>('f-1')
-  const [editingFaq, setEditingFaq] = useState<FaqItem | null>(null)
-  const [isAddingFaq, setIsAddingFaq] = useState<boolean>(false)
-  const [faqQuestion, setFaqQuestion] = useState<string>('')
-  const [faqAnswer, setFaqAnswer] = useState<string>('')
-
-  // Toast Notice
+  // ─── Toast Notice ─────────────────────────────────────────────────────────
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -204,7 +180,19 @@ export function CmsPanel() {
     return apiOptions.filter((opt) => opt.type === activeOptionType)
   }, [apiOptions, activeOptionType])
 
-  // Handlers for App Options
+  // Filtered FAQs for the active role & search
+  const apiFaqs = faqsResponse?.data || []
+  const filteredFaqs = useMemo(() => {
+    if (!faqSearch.trim()) return apiFaqs
+    const q = faqSearch.toLowerCase()
+    return apiFaqs.filter(
+      (faq) =>
+        faq.question.toLowerCase().includes(q) ||
+        faq.answer.toLowerCase().includes(q)
+    )
+  }, [apiFaqs, faqSearch])
+
+  // ─── Handlers for App Options ─────────────────────────────────────────────
   const openAddOptionModal = () => {
     setEditingOption(null)
     setOptionNameInput('')
@@ -263,7 +251,67 @@ export function CmsPanel() {
     showToast('Resetting options (feature ready).')
   }
 
-  // Navigation Items matching the screenshot
+  // ─── Handlers for FAQs ────────────────────────────────────────────────────
+  const openAddFaqModal = () => {
+    setEditingFaq(null)
+    setFaqQuestionInput('')
+    setFaqAnswerInput('')
+    setFaqRoleInput(faqRole)
+    setIsFaqModalOpen(true)
+  }
+
+  const openEditFaqModal = (faq: FaqItem) => {
+    setEditingFaq(faq)
+    setFaqQuestionInput(faq.question)
+    setFaqAnswerInput(faq.answer)
+    setFaqRoleInput(faq.role)
+    setIsFaqModalOpen(true)
+  }
+
+  const handleSaveFaq = async () => {
+    if (!faqQuestionInput.trim() || !faqAnswerInput.trim()) {
+      showToast('Question and Answer cannot be empty.')
+      return
+    }
+
+    try {
+      if (editingFaq) {
+        await updateFaq({
+          id: editingFaq._id,
+          body: {
+            question: faqQuestionInput.trim(),
+            answer: faqAnswerInput.trim(),
+            role: faqRoleInput,
+          },
+        }).unwrap()
+        showToast('FAQ updated successfully.')
+      } else {
+        await createFaq({
+          question: faqQuestionInput.trim(),
+          answer: faqAnswerInput.trim(),
+          role: faqRoleInput,
+        }).unwrap()
+        showToast('FAQ added successfully.')
+      }
+      setIsFaqModalOpen(false)
+      setEditingFaq(null)
+    } catch {
+      showToast('Failed to save FAQ. Please try again.')
+    }
+  }
+
+  const handleDeleteFaq = async () => {
+    if (!deleteFaqTarget) return
+    try {
+      await deleteFaq(deleteFaqTarget._id).unwrap()
+      showToast('FAQ deleted successfully.')
+      setDeleteFaqTarget(null)
+    } catch {
+      showToast('Failed to delete FAQ. Please try again.')
+    }
+  }
+
+  // ─── Navigation Items matching the screenshot ─────────────────────────────
   const navItems: { id: CmsSection; label: string; icon: any }[] = [
     { id: 'options', label: 'App Dropdown Options', icon: SlidersHorizontal },
     { id: 'faqs', label: 'Help & FAQ', icon: HelpCircle },
@@ -273,7 +321,8 @@ export function CmsPanel() {
   ]
 
   // Policy Markdown Editor helpers
-  const activePolicy = policies[activeSection === 'privacy' ? 'privacy' : activeSection === 'about' ? 'about' : 'terms']
+  const activePolicy =
+    policies[activeSection === 'privacy' ? 'privacy' : activeSection === 'about' ? 'about' : 'terms']
 
   const openPolicyEditor = (key: string) => {
     setEditingPolicyKey(key)
@@ -324,17 +373,6 @@ export function CmsPanel() {
         break
     }
   }
-
-  const filteredFaqs = useMemo(() => {
-    return faqs.filter((faq) => {
-      const matchAudience = faq.audience === faqAudience
-      const matchQuery =
-        !faqSearch ||
-        faq.question.toLowerCase().includes(faqSearch.toLowerCase()) ||
-        faq.answer.toLowerCase().includes(faqSearch.toLowerCase())
-      return matchAudience && matchQuery
-    })
-  }, [faqs, faqAudience, faqSearch])
 
   return (
     <div className="space-y-6">
@@ -403,20 +441,20 @@ export function CmsPanel() {
                   ))}
                 </div>
 
-                {/* Right Action Buttons */}
+                {/* Right controls: Reset Defaults and Add Option */}
                 <div className="flex items-center gap-3">
-                  {isOptionsFetching && !isOptionsLoading && (
-                    <span className="flex items-center gap-1 text-xs text-slate-400">
-                      <Loader2 className="h-3 w-3 animate-spin text-brand-600" /> Syncing
+                  {isOptionsFetching && (
+                    <span className="inline-flex items-center gap-1 text-[11px] text-brand-600 font-medium">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Syncing...
                     </span>
                   )}
-
                   <button
                     type="button"
                     onClick={handleResetDefaults}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition cursor-pointer"
                   >
-                    <RotateCcw className="h-3.5 w-3.5" />
+                    <RotateCcw className="h-3.5 w-3.5 text-slate-400" />
                     Reset Defaults
                   </button>
 
@@ -430,49 +468,48 @@ export function CmsPanel() {
                 </div>
               </div>
 
-              {/* Table / List */}
+              {/* Table of Options */}
               {isOptionsLoading ? (
-                <div className="p-12 flex flex-col items-center justify-center gap-3 text-slate-400">
-                  <Loader2 className="h-7 w-7 animate-spin text-brand-600" />
-                  <p className="text-sm font-medium">Loading dropdown options...</p>
+                <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                  <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+                  <span className="text-xs">Loading dropdown options...</span>
                 </div>
               ) : (
-                <div className="mt-5 border border-slate-100/90 rounded-xl overflow-hidden">
-                  <table className="w-full text-left">
+                <div className="overflow-x-auto mt-2">
+                  <table className="w-full text-left text-xs">
                     <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50/60">
-                        <th className="py-3 px-5 text-xs font-bold uppercase tracking-wider text-slate-400">
-                          OPTION NAME
-                        </th>
-                        <th className="py-3 px-5 text-xs font-bold uppercase tracking-wider text-slate-400 text-right">
-                          ACTION
-                        </th>
+                      <tr className="border-b border-slate-100 text-slate-400 font-semibold tracking-wider uppercase text-[10px]">
+                        <th className="py-3 px-2">Option Name</th>
+                        <th className="py-3 px-2 text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100/80">
                       {currentOptions.length > 0 ? (
-                        currentOptions.map((item) => (
-                          <tr key={item._id} className="hover:bg-slate-50/50 transition">
-                            <td className="py-3.5 px-5 text-sm font-semibold text-slate-800">
-                              {item.name}
+                        currentOptions.map((option) => (
+                          <tr
+                            key={option._id}
+                            className="group hover:bg-slate-50/50 transition-colors"
+                          >
+                            <td className="py-3 px-2 font-medium text-slate-800">
+                              {option.name}
                             </td>
-                            <td className="py-3.5 px-5 text-right">
+                            <td className="py-3 px-2 text-right">
                               <div className="inline-flex items-center gap-2">
                                 <button
                                   type="button"
-                                  onClick={() => openEditOptionModal(item)}
+                                  onClick={() => openEditOptionModal(option)}
                                   className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
-                                  title="Edit Option"
+                                  title="Edit option"
                                 >
-                                  <Pencil className="h-4 w-4" />
+                                  <Pencil className="h-3.5 w-3.5" />
                                 </button>
                                 <button
                                   type="button"
-                                  onClick={() => setDeleteOptionTarget(item)}
+                                  onClick={() => setDeleteOptionTarget(option)}
                                   className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
-                                  title="Delete Option"
+                                  title="Delete option"
                                 >
-                                  <Trash2 className="h-4 w-4 text-red-500" />
+                                  <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                               </div>
                             </td>
@@ -500,10 +537,10 @@ export function CmsPanel() {
                 <div className="segmented-track !p-1 bg-slate-100/80">
                   <button
                     type="button"
-                    onClick={() => setFaqAudience('landlords')}
+                    onClick={() => setFaqRole('landlord')}
                     className={cn(
                       'px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5',
-                      faqAudience === 'landlords'
+                      faqRole === 'landlord'
                         ? 'bg-white text-slate-900 font-bold shadow-xs'
                         : 'text-slate-500 hover:text-slate-800'
                     )}
@@ -513,10 +550,10 @@ export function CmsPanel() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFaqAudience('tenants')}
+                    onClick={() => setFaqRole('tenant')}
                     className={cn(
                       'px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5',
-                      faqAudience === 'tenants'
+                      faqRole === 'tenant'
                         ? 'bg-white text-slate-900 font-bold shadow-xs'
                         : 'text-slate-500 hover:text-slate-800'
                     )}
@@ -526,10 +563,10 @@ export function CmsPanel() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFaqAudience('contractors')}
+                    onClick={() => setFaqRole('contractor')}
                     className={cn(
                       'px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer flex items-center gap-1.5',
-                      faqAudience === 'contractors'
+                      faqRole === 'contractor'
                         ? 'bg-white text-slate-900 font-bold shadow-xs'
                         : 'text-slate-500 hover:text-slate-800'
                     )}
@@ -540,6 +577,13 @@ export function CmsPanel() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                  {isFaqsFetching && (
+                    <span className="inline-flex items-center gap-1 text-[11px] text-brand-600 font-medium">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Syncing...
+                    </span>
+                  )}
+
                   <div className="relative">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                     <input
@@ -552,11 +596,7 @@ export function CmsPanel() {
                   </div>
 
                   <Button
-                    onClick={() => {
-                      setFaqQuestion('')
-                      setFaqAnswer('')
-                      setIsAddingFaq(true)
-                    }}
+                    onClick={openAddFaqModal}
                     className="!bg-brand-600 hover:!bg-brand-700 !px-4 !py-2 !text-xs font-bold inline-flex items-center gap-1.5 shadow-xs"
                   >
                     <Plus className="h-3.5 w-3.5" />
@@ -566,59 +606,69 @@ export function CmsPanel() {
               </div>
 
               {/* FAQ Accordion List */}
-              <div className="space-y-3">
-                {filteredFaqs.map((faq, index) => {
-                  const isExpanded = expandedFaqId === faq.id
-                  return (
-                    <div
-                      key={faq.id}
-                      className="rounded-xl border border-slate-100 p-4 transition-all hover:border-slate-200"
-                    >
+              {isFaqsLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                  <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+                  <span className="text-xs">Loading FAQs...</span>
+                </div>
+              ) : filteredFaqs.length > 0 ? (
+                <div className="space-y-3">
+                  {filteredFaqs.map((faq, index) => {
+                    const isExpanded = expandedFaqId === faq._id
+                    return (
                       <div
-                        onClick={() => setExpandedFaqId(isExpanded ? null : faq.id)}
-                        className="flex items-center justify-between gap-4 cursor-pointer select-none"
+                        key={faq._id}
+                        className="rounded-xl border border-slate-100 p-4 transition-all hover:border-slate-200"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-500 font-mono">
-                            {String(index + 1).padStart(2, '0')}
-                          </span>
-                          <h4 className="text-sm font-bold text-slate-900">{faq.question}</h4>
+                        <div
+                          onClick={() => setExpandedFaqId(isExpanded ? null : faq._id)}
+                          className="flex items-center justify-between gap-4 cursor-pointer select-none"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-slate-500 font-mono">
+                              {String(index + 1).padStart(2, '0')}
+                            </span>
+                            <h4 className="text-sm font-bold text-slate-900">{faq.question}</h4>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openEditFaqModal(faq)
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+                              title="Edit FAQ"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setDeleteFaqTarget(faq)
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                              title="Delete FAQ"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setEditingFaq(faq)
-                              setFaqQuestion(faq.question)
-                              setFaqAnswer(faq.answer)
-                            }}
-                            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition cursor-pointer"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setFaqs((p) => p.filter((f) => f.id !== faq.id))
-                              showToast('FAQ deleted.')
-                            }}
-                            className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                          </button>
-                        </div>
+                        {isExpanded && (
+                          <p className="mt-3 pl-9 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3 whitespace-pre-line">
+                            {faq.answer}
+                          </p>
+                        )}
                       </div>
-                      {isExpanded && (
-                        <p className="mt-3 pl-9 text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
-                          {faq.answer}
-                        </p>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="py-12 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">
+                  No FAQs found for this role. Click &quot;+ Add FAQ&quot; above to create one.
+                </div>
+              )}
             </div>
           )}
 
@@ -637,7 +687,10 @@ export function CmsPanel() {
                       <Button variant="secondary" onClick={() => setEditingPolicyKey(null)}>
                         Cancel
                       </Button>
-                      <Button onClick={savePolicy} className="!bg-brand-600 hover:!bg-brand-700 font-bold inline-flex items-center gap-1.5">
+                      <Button
+                        onClick={savePolicy}
+                        className="!bg-brand-600 hover:!bg-brand-700 font-bold inline-flex items-center gap-1.5"
+                      >
                         <Save className="h-3.5 w-3.5" /> Save Changes
                       </Button>
                     </div>
@@ -645,30 +698,62 @@ export function CmsPanel() {
 
                   {/* Toolbar */}
                   <div className="flex flex-wrap items-center gap-1 bg-slate-50 border border-slate-200/70 p-1.5 rounded-lg text-xs">
-                    <button type="button" onClick={() => insertMarkdown('bold')} className="px-2 py-1 font-bold hover:bg-slate-200 rounded">
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('bold')}
+                      className="px-2 py-1 font-bold hover:bg-slate-200 rounded cursor-pointer"
+                    >
                       B
                     </button>
-                    <button type="button" onClick={() => insertMarkdown('italic')} className="px-2 py-1 italic hover:bg-slate-200 rounded">
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('italic')}
+                      className="px-2 py-1 italic hover:bg-slate-200 rounded cursor-pointer"
+                    >
                       I
                     </button>
                     <span className="h-3.5 w-[1px] bg-slate-300 mx-1" />
-                    <button type="button" onClick={() => insertMarkdown('h1')} className="px-2 py-1 font-bold hover:bg-slate-200 rounded">
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('h1')}
+                      className="px-2 py-1 font-bold hover:bg-slate-200 rounded cursor-pointer"
+                    >
                       H1
                     </button>
-                    <button type="button" onClick={() => insertMarkdown('h2')} className="px-2 py-1 font-bold hover:bg-slate-200 rounded">
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('h2')}
+                      className="px-2 py-1 font-bold hover:bg-slate-200 rounded cursor-pointer"
+                    >
                       H2
                     </button>
                     <span className="h-3.5 w-[1px] bg-slate-300 mx-1" />
-                    <button type="button" onClick={() => insertMarkdown('bullet')} className="p-1 hover:bg-slate-200 rounded">
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('bullet')}
+                      className="p-1 hover:bg-slate-200 rounded cursor-pointer"
+                    >
                       <List className="h-3.5 w-3.5" />
                     </button>
-                    <button type="button" onClick={() => insertMarkdown('numbered')} className="p-1 hover:bg-slate-200 rounded">
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('numbered')}
+                      className="p-1 hover:bg-slate-200 rounded cursor-pointer"
+                    >
                       <ListOrdered className="h-3.5 w-3.5" />
                     </button>
-                    <button type="button" onClick={() => insertMarkdown('quote')} className="p-1 hover:bg-slate-200 rounded">
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('quote')}
+                      className="p-1 hover:bg-slate-200 rounded cursor-pointer"
+                    >
                       <Quote className="h-3.5 w-3.5" />
                     </button>
-                    <button type="button" onClick={() => insertMarkdown('link')} className="p-1 hover:bg-slate-200 rounded">
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('link')}
+                      className="p-1 hover:bg-slate-200 rounded cursor-pointer"
+                    >
                       <Link2 className="h-3.5 w-3.5" />
                     </button>
                   </div>
@@ -688,7 +773,15 @@ export function CmsPanel() {
                       <p className="text-xs text-slate-400 font-medium">Last updated: {activePolicy.updated}</p>
                     </div>
                     <Button
-                      onClick={() => openPolicyEditor(activeSection === 'privacy' ? 'privacy' : activeSection === 'about' ? 'about' : 'terms')}
+                      onClick={() =>
+                        openPolicyEditor(
+                          activeSection === 'privacy'
+                            ? 'privacy'
+                            : activeSection === 'about'
+                              ? 'about'
+                              : 'terms'
+                        )
+                      }
                       className="!bg-brand-600 hover:!bg-brand-700 font-bold inline-flex items-center gap-1.5"
                     >
                       <Edit3 className="h-3.5 w-3.5" /> Edit Document
@@ -784,10 +877,10 @@ export function CmsPanel() {
 
       {/* Modal: Add / Edit FAQ */}
       <Modal
-        open={isAddingFaq || Boolean(editingFaq)}
+        open={isFaqModalOpen}
         title={editingFaq ? 'Edit FAQ' : 'Add New FAQ'}
         onClose={() => {
-          setIsAddingFaq(false)
+          setIsFaqModalOpen(false)
           setEditingFaq(null)
         }}
         footer={
@@ -796,7 +889,7 @@ export function CmsPanel() {
               variant="secondary"
               fullWidth
               onClick={() => {
-                setIsAddingFaq(false)
+                setIsFaqModalOpen(false)
                 setEditingFaq(null)
               }}
             >
@@ -804,55 +897,82 @@ export function CmsPanel() {
             </Button>
             <Button
               fullWidth
-              onClick={() => {
-                if (!faqQuestion.trim() || !faqAnswer.trim()) return
-                if (editingFaq) {
-                  setFaqs((p) =>
-                    p.map((f) =>
-                      f.id === editingFaq.id
-                        ? { ...f, question: faqQuestion.trim(), answer: faqAnswer.trim() }
-                        : f
-                    )
-                  )
-                  showToast('FAQ updated.')
-                } else {
-                  const newFaq: FaqItem = {
-                    id: `f-${Date.now()}`,
-                    audience: faqAudience,
-                    question: faqQuestion.trim(),
-                    answer: faqAnswer.trim(),
-                  }
-                  setFaqs((p) => [newFaq, ...p])
-                  showToast('FAQ added.')
-                }
-                setIsAddingFaq(false)
-                setEditingFaq(null)
-              }}
+              onClick={handleSaveFaq}
+              loading={isCreatingFaq || isUpdatingFaq}
               className="!bg-brand-600 hover:!bg-brand-700 font-bold"
             >
-              Save FAQ
+              {editingFaq ? 'Save Changes' : 'Add FAQ'}
             </Button>
           </div>
         }
       >
         <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              Audience Role
+            </label>
+            <select
+              value={faqRoleInput}
+              onChange={(e) => setFaqRoleInput(e.target.value as FaqRole)}
+              className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            >
+              <option value="landlord">Landlord (landlord)</option>
+              <option value="tenant">Tenant (tenant)</option>
+              <option value="contractor">Contractor (contractor)</option>
+            </select>
+          </div>
+
           <Input
             label="Question"
-            placeholder="e.g. How do I verify certifications?"
-            value={faqQuestion}
-            onChange={(e) => setFaqQuestion(e.target.value)}
+            placeholder="e.g. How does Landlord HQ track Gas Safety (CP12)?"
+            value={faqQuestionInput}
+            onChange={(e) => setFaqQuestionInput(e.target.value)}
             required
+            autoFocus
           />
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Answer</label>
             <textarea
-              value={faqAnswer}
-              onChange={(e) => setFaqAnswer(e.target.value)}
-              className="w-full min-h-[100px] p-3 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-100"
+              value={faqAnswerInput}
+              onChange={(e) => setFaqAnswerInput(e.target.value)}
+              className="w-full min-h-[120px] p-3 text-sm text-slate-800 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-100"
               placeholder="Provide a clear, detailed answer..."
+              required
             />
           </div>
         </div>
+      </Modal>
+
+      {/* Modal: Delete FAQ Confirmation */}
+      <Modal
+        open={Boolean(deleteFaqTarget)}
+        title="Delete FAQ?"
+        onClose={() => setDeleteFaqTarget(null)}
+        footer={
+          <div className="flex gap-2">
+            <Button variant="secondary" fullWidth onClick={() => setDeleteFaqTarget(null)}>
+              Cancel
+            </Button>
+            <Button
+              fullWidth
+              className="!bg-red-600 hover:!bg-red-700 font-bold"
+              loading={isDeletingFaq}
+              onClick={handleDeleteFaq}
+            >
+              Delete
+            </Button>
+          </div>
+        }
+      >
+        {deleteFaqTarget && (
+          <p className="text-sm text-slate-600">
+            Are you sure you want to delete this FAQ: <br />
+            <span className="font-semibold text-slate-900 mt-1 block">
+              &ldquo;{deleteFaqTarget.question}&rdquo;
+            </span>
+          </p>
+        )}
       </Modal>
     </div>
   )

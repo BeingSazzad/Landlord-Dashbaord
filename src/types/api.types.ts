@@ -264,6 +264,34 @@ export interface CmsPage {
   preview: string
 }
 
+// ─── FAQs ────────────────────────────────────────────────────────────────────
+
+export type FaqRole = 'landlord' | 'tenant' | 'contractor'
+
+export interface FaqItem {
+  _id: string
+  question: string
+  answer: string
+  role: FaqRole
+  isDeleted?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CreateFaqRequest {
+  question: string
+  answer: string
+  role: FaqRole
+}
+
+export type UpdateFaqRequest = Partial<CreateFaqRequest>
+
+export interface GetFaqsResponse {
+  success: boolean
+  message: string
+  data: FaqItem[]
+}
+
 // ─── Support ─────────────────────────────────────────────────────────────────
 
 export interface SupportMessage {
