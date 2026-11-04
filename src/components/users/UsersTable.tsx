@@ -18,7 +18,7 @@ import { Avatar } from '@/components/shared/Avatar'
 import { DataTable } from '@/components/shared/DataTable'
 import { StatCard } from '@/components/dashboard/components/StatCard'
 import { Button } from '@/components/ui/Button'
-import { Modal } from '@/components/ui/Modal'
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal'
 import { UserDetailsModal } from './UserDetailsModal'
 import type { BackendUser } from '@/types/api.types'
 import { useDebounce } from '@/hooks/useDebounce'
@@ -328,36 +328,25 @@ export function UsersTable() {
       />
 
       {/* Remove Confirmation Modal */}
-      <Modal
+      <ConfirmDeleteModal
         open={Boolean(removeTarget)}
         title="Remove user?"
+        confirmText="Remove"
         onClose={() => setRemoveTarget(null)}
-        footer={
-          <div className="flex gap-2">
-            <Button variant="secondary" fullWidth onClick={() => setRemoveTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              fullWidth
-              className="!bg-red-600 hover:!bg-red-700 font-bold"
-              onClick={() => {
-                if (removeTarget) {
-                  flash(`${removeTarget.name} removed from view.`)
-                  setRemoveTarget(null)
-                }
-              }}
-            >
-              Remove
-            </Button>
-          </div>
-        }
+        onConfirm={() => {
+          if (removeTarget) {
+            flash(`${removeTarget.name} removed from view.`)
+            setRemoveTarget(null)
+          }
+        }}
       >
         {removeTarget && (
-          <p className="text-sm text-slate-600">
-            Remove <span className="font-semibold text-slate-900">{removeTarget.name}</span> ({removeTarget.email})?
+          <p>
+            Are you sure you want to remove{' '}
+            <strong className="font-semibold text-slate-900">{removeTarget.name}</strong> ({removeTarget.email})?
           </p>
         )}
-      </Modal>
+      </ConfirmDeleteModal>
     </div>
   )
 }

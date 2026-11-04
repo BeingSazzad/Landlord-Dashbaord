@@ -1,6 +1,5 @@
 import { useDeleteAdminMutation } from '@/services/endpoints/usersApi'
-import { Button } from '@/components/ui/Button'
-import { Modal } from '@/components/ui/Modal'
+import { ConfirmDeleteModal } from '@/components/ui'
 import type { AdminItem } from '@/types/api.types'
 
 interface DeleteAdminModalProps {
@@ -25,34 +24,21 @@ export function DeleteAdminModal({ target, onClose, onFlash }: DeleteAdminModalP
   }
 
   return (
-    <Modal
+    <ConfirmDeleteModal
       open={Boolean(target)}
       title="Delete Administrator?"
+      confirmText="Delete Admin"
+      loading={isDeletingAdmin}
+      onConfirm={handleDelete}
       onClose={onClose}
-      footer={
-        <div className="flex gap-2">
-          <Button variant="secondary" fullWidth onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            fullWidth
-            className="!bg-red-600 hover:!bg-red-700 font-bold"
-            loading={isDeletingAdmin}
-            onClick={handleDelete}
-          >
-            Delete Admin
-          </Button>
-        </div>
-      }
     >
       {target && (
-        <p className="text-sm text-slate-600">
+        <p>
           Are you sure you want to delete administrator{' '}
           <strong className="text-slate-900">{target.name}</strong> ({target.email})?
           This will permanently remove their admin account.
         </p>
       )}
-    </Modal>
+    </ConfirmDeleteModal>
   )
 }
-

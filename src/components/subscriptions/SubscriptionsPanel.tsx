@@ -16,6 +16,7 @@ import {
 } from '@/services/endpoints/packagesApi'
 import { cn, formatMoney } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import type { PackageItem } from '@/types/api.types'
@@ -447,32 +448,22 @@ export function SubscriptionsPanel() {
       </Modal>
 
       {/* Delete Confirmation Modal */}
-      <Modal
+      <ConfirmDeleteModal
         open={Boolean(deleteTarget)}
         title="Delete Package Plan?"
+        confirmText="Delete Permanently"
+        loading={isDeleting}
+        onConfirm={handleDeletePackage}
         onClose={() => setDeleteTarget(null)}
-        footer={
-          <div className="flex gap-2">
-            <Button variant="secondary" fullWidth onClick={() => setDeleteTarget(null)}>
-              Cancel
-            </Button>
-            <Button
-              fullWidth
-              className="!bg-red-600 hover:!bg-red-700 font-bold"
-              loading={isDeleting}
-              onClick={handleDeletePackage}
-            >
-              Delete Permanently
-            </Button>
-          </div>
-        }
       >
         {deleteTarget && (
-          <p className="text-sm text-slate-600">
-            Are you sure you want to delete <span className="font-semibold text-slate-900">{deleteTarget.name}</span>? Landlords on this tier will need to be reassigned.
+          <p>
+            Are you sure you want to delete{' '}
+            <strong className="font-semibold text-slate-900">{deleteTarget.name}</strong>? Landlords
+            on this tier will need to be reassigned.
           </p>
         )}
-      </Modal>
+      </ConfirmDeleteModal>
     </div>
   )
 }
