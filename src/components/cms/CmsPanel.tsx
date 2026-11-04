@@ -34,78 +34,17 @@ import {
   useGetFaqsQuery,
   useUpdateFaqMutation,
 } from '@/services/endpoints/faqsApi'
+import {
+  useGetRuleByTypeQuery,
+  useSaveRuleMutation,
+} from '@/services/endpoints/rulesApi'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { cn } from '@/lib/utils'
-import type { AppOptionItem, AppOptionType, FaqItem, FaqRole } from '@/types/api.types'
+import type { AppOptionItem, AppOptionType, FaqItem, FaqRole, RuleType } from '@/types/api.types'
 
 type CmsSection = 'options' | 'faqs' | 'privacy' | 'terms' | 'about'
-
-interface PolicyDocument {
-  id: string
-  title: string
-  updated: string
-  readTime: string
-  content: string
-}
-
-const INITIAL_POLICIES: Record<string, PolicyDocument> = {
-  terms: {
-    id: 'terms',
-    title: 'Terms & Conditions',
-    updated: 'September 2026',
-    readTime: '~2 min read',
-    content: `# Terms & Conditions — Landlord HQ UK Platform
-
-## 1. Introduction and Platform Scope
-By registering as a Landlord, Tenant, or Certified Contractor on Landlord HQ, you accept full adherence to these terms, statutory UK tenancy guidelines, and automated platform escrow rules.
-
-## 2. Tenancy Deposit Protection & Escrow Compliance
-All tenant security deposits collected through Landlord HQ must be protected within 30 days under an approved UK government tenancy deposit scheme (DPS, MyDeposits, or TDS) in compliance with the Housing Act 2004. Platform escrow holds release automatically upon joint sign-off.
-
-## 3. Landlord Statutory Obligations & Safety Certifications
-Landlords warrant that every managed property maintains current statutory compliance records:
-- Annual Gas Safety Records (CP12)
-- Electrical Installation Condition Reports (EICR, 5-year cycle)
-- Minimum Energy Performance Certificate (EPC) Rating E or higher
-- Statutory HMO Licensing for applicable multi-occupancy properties
-
-## 4. Tenant Verification & Fair Referencing Standards
-Tenant onboarding and identity referencing strictly adhere to UK Right to Rent statutory checks and UK GDPR data regulations. Reference checks include credit risk profiling, employment confirmation, and previous landlord references.
-
-## 5. Maintenance Dispatch & Dispute Resolution
-Landlord HQ operates a digital mediation ledger for repair obligations under Section 11 of the Landlord and Tenant Act 1985. In case of contested repairs, independent inspection reports are archived on the ledger.`,
-  },
-  privacy: {
-    id: 'privacy',
-    title: 'Privacy Policy',
-    updated: 'September 2026',
-    readTime: '~3 min read',
-    content: `# Privacy Policy — Landlord HQ
-
-## 1. Information We Collect
-We process personal data necessary to provide property management services, including full name, address, verified ID documents, bank account details for rental disbursement, and tenancy agreement metadata.
-
-## 2. Statutory Basis for Processing
-Data processing is conducted strictly pursuant to UK GDPR Article 6:
-- Performance of contractual tenancy agreements
-- Compliance with statutory legal obligations (Right to Rent, Anti-Money Laundering)
-- Legitimate interests in securing tenancy transactions
-
-## 3. Data Storage & Encryption
-All user records and identity documents are stored in UK-sovereign data centers encrypted at rest with AES-256 and transmitted using TLS 1.3 encryption.`,
-  },
-  about: {
-    id: 'about',
-    title: 'About Landlord HQ',
-    updated: 'September 2026',
-    readTime: '~1 min read',
-    content: `# About Landlord HQ
-
-Landlord HQ is the dedicated property management platform for modern UK landlords, tenants, and verified tradespeople. We combine automated rent collection, compliance expiration tracking, digital tenancy contracts, and contractor dispatch into one unified system.`,
-  },
-}
 
 const OPTION_TABS: { label: string; type: AppOptionType }[] = [
   { label: 'Issue type', type: 'issue_type' },
@@ -161,10 +100,39 @@ export function CmsPanel() {
   const [faqRoleInput, setFaqRoleInput] = useState<FaqRole>('landlord')
   const [deleteFaqTarget, setDeleteFaqTarget] = useState<FaqItem | null>(null)
 
-  // ─── Policy Documents State ───────────────────────────────────────────────
-  const [policies, setPolicies] = useState(INITIAL_POLICIES)
-  const [editingPolicyKey, setEditingPolicyKey] = useState<string | null>(null)
-  const [policyContent, setPolicyContent] = useState<string>('')
+  // ─── Rules API Hooks (About Us, Terms & Conditions, Privacy Policy) ───────
+  const isRuleSection =
+    activeSection === 'privacy' || activeSection === 'terms' || activeSection === 'about'
+
+  const currentRuleType: RuleType | null =
+    activeSection === 'privacy'
+      ? 'policy'
+      : activeSection === 'terms'
+        ? 'terms'
+        : activeSection === 'about'
+          ? 'about'
+          : null
+
+  const ruleTitleMap: Record<RuleType, string> = {
+    policy: 'Privacy Policy',
+    terms: 'Terms & Conditions',
+    about: 'About Us',
+  }
+
+  const activeRuleTitle = currentRuleType ? ruleTitleMap[currentRuleType] : ''
+
+  const {
+    data: ruleResponse,
+    isLoading: isRuleLoading,
+    isFetching: isRuleFetching,
+  } = useGetRuleByTypeQuery(currentRuleType as RuleType, {
+    skip: !currentRuleType,
+  })
+
+  const [saveRule, { isLoading: isSavingRule }] = useSaveRuleMutation()
+
+  const [isEditingRule, setIsEditingRule] = useState(false)
+  const [ruleContentInput, setRuleContentInput] = useState('')
 
   // ─── Toast Notice ─────────────────────────────────────────────────────────
   const [toastMessage, setToastMessage] = useState<string | null>(null)
@@ -311,6 +279,58 @@ export function CmsPanel() {
     }
   }
 
+  // ─── Handlers for Rules (About, Terms, Policy) ────────────────────────────
+  const openRuleEditor = () => {
+    setRuleContentInput(ruleResponse?.data?.content || '')
+    setIsEditingRule(true)
+  }
+
+  const handleSaveRule = async () => {
+    if (!currentRuleType) return
+    try {
+      await saveRule({
+        type: currentRuleType,
+        content: ruleContentInput,
+      }).unwrap()
+      setIsEditingRule(false)
+      showToast(`${activeRuleTitle} updated successfully.`)
+    } catch (err: any) {
+      const msg = err?.data?.message || 'Failed to save document. Please try again.'
+      showToast(msg)
+    }
+  }
+
+  const insertMarkdown = (syntax: string) => {
+    switch (syntax) {
+      case 'bold':
+        setRuleContentInput((p) => p + '\n**Statutory Clause**')
+        break
+      case 'italic':
+        setRuleContentInput((p) => p + '\n*Compliance note*')
+        break
+      case 'h1':
+        setRuleContentInput((p) => p + '\n\n# New Section')
+        break
+      case 'h2':
+        setRuleContentInput((p) => p + '\n\n## 1. Regulatory Procedure')
+        break
+      case 'bullet':
+        setRuleContentInput((p) => p + '\n- Mandatory verification clause')
+        break
+      case 'numbered':
+        setRuleContentInput((p) => p + '\n1. First procedural step')
+        break
+      case 'quote':
+        setRuleContentInput((p) => p + '\n> Statutory notice pursuant to Housing Act 2004.')
+        break
+      case 'link':
+        setRuleContentInput((p) => p + ' [Landlord HQ Portal](https://landlordhq.co.uk)')
+        break
+      default:
+        break
+    }
+  }
+
   // ─── Navigation Items matching the screenshot ─────────────────────────────
   const navItems: { id: CmsSection; label: string; icon: any }[] = [
     { id: 'options', label: 'App Dropdown Options', icon: SlidersHorizontal },
@@ -319,60 +339,6 @@ export function CmsPanel() {
     { id: 'terms', label: 'Terms & Conditions', icon: FileText },
     { id: 'about', label: 'About Us', icon: Info },
   ]
-
-  // Policy Markdown Editor helpers
-  const activePolicy =
-    policies[activeSection === 'privacy' ? 'privacy' : activeSection === 'about' ? 'about' : 'terms']
-
-  const openPolicyEditor = (key: string) => {
-    setEditingPolicyKey(key)
-    setPolicyContent(policies[key].content)
-  }
-
-  const savePolicy = () => {
-    if (!editingPolicyKey) return
-    setPolicies((prev) => ({
-      ...prev,
-      [editingPolicyKey]: {
-        ...prev[editingPolicyKey],
-        content: policyContent,
-        updated: new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }),
-      },
-    }))
-    setEditingPolicyKey(null)
-    showToast('Policy updated successfully.')
-  }
-
-  const insertMarkdown = (syntax: string) => {
-    switch (syntax) {
-      case 'bold':
-        setPolicyContent((p) => p + '\n**Statutory Clause**')
-        break
-      case 'italic':
-        setPolicyContent((p) => p + '\n*Compliance note*')
-        break
-      case 'h1':
-        setPolicyContent((p) => p + '\n\n# New Section')
-        break
-      case 'h2':
-        setPolicyContent((p) => p + '\n\n## 1. Regulatory Procedure')
-        break
-      case 'bullet':
-        setPolicyContent((p) => p + '\n- Mandatory verification clause')
-        break
-      case 'numbered':
-        setPolicyContent((p) => p + '\n1. First procedural step')
-        break
-      case 'quote':
-        setPolicyContent((p) => p + '\n> Statutory notice pursuant to Housing Act 2004.')
-        break
-      case 'link':
-        setPolicyContent((p) => p + ' [Landlord HQ Portal](https://landlordhq.co.uk)')
-        break
-      default:
-        break
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -395,7 +361,7 @@ export function CmsPanel() {
                 type="button"
                 onClick={() => {
                   setActiveSection(id)
-                  setEditingPolicyKey(null)
+                  setIsEditingRule(false)
                 }}
                 className={cn(
                   'w-full text-left rounded-2xl p-4 transition-all duration-200 cursor-pointer flex items-center justify-between',
@@ -672,23 +638,35 @@ export function CmsPanel() {
             </div>
           )}
 
-          {/* TAB 3, 4, 5: POLICY EDITORS (Privacy Policy, Terms & Conditions, About Us) */}
-          {(activeSection === 'privacy' || activeSection === 'terms' || activeSection === 'about') && (
+          {/* TAB 3, 4, 5: STATUTORY RULES (Privacy Policy, Terms & Conditions, About Us) */}
+          {isRuleSection && currentRuleType && (
             <div className="admin-card p-6">
-              {editingPolicyKey ? (
+              {isRuleLoading ? (
+                <div className="py-16 flex flex-col items-center justify-center gap-2 text-slate-400">
+                  <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+                  <span className="text-xs">Loading {activeRuleTitle}...</span>
+                </div>
+              ) : isEditingRule ? (
                 /* IN-PLACE LIVE MARKDOWN EDITOR */
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div>
-                      <h3 className="text-base font-bold text-slate-900">{activePolicy.title}</h3>
-                      <p className="text-xs text-slate-400 font-medium">Editing statutory document in markdown</p>
+                      <h3 className="text-base font-bold text-slate-900">{activeRuleTitle}</h3>
+                      <p className="text-xs text-slate-400 font-medium">
+                        Editing statutory document in markdown
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button variant="secondary" onClick={() => setEditingPolicyKey(null)}>
+                      <Button
+                        variant="secondary"
+                        onClick={() => setIsEditingRule(false)}
+                        disabled={isSavingRule}
+                      >
                         Cancel
                       </Button>
                       <Button
-                        onClick={savePolicy}
+                        onClick={handleSaveRule}
+                        loading={isSavingRule}
                         className="!bg-brand-600 hover:!bg-brand-700 font-bold inline-flex items-center gap-1.5"
                       >
                         <Save className="h-3.5 w-3.5" /> Save Changes
@@ -759,9 +737,10 @@ export function CmsPanel() {
                   </div>
 
                   <textarea
-                    value={policyContent}
-                    onChange={(e) => setPolicyContent(e.target.value)}
+                    value={ruleContentInput}
+                    onChange={(e) => setRuleContentInput(e.target.value)}
                     className="w-full min-h-[420px] p-4 font-mono text-xs leading-relaxed text-slate-800 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-100"
+                    placeholder="Enter statutory text in markdown format..."
                   />
                 </div>
               ) : (
@@ -769,19 +748,28 @@ export function CmsPanel() {
                 <div className="space-y-5">
                   <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div>
-                      <h3 className="text-base font-bold text-slate-900">{activePolicy.title}</h3>
-                      <p className="text-xs text-slate-400 font-medium">Last updated: {activePolicy.updated}</p>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base font-bold text-slate-900">{activeRuleTitle}</h3>
+                        {isRuleFetching && (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-brand-600 font-medium">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Syncing...
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-400 font-medium">
+                        Last updated:{' '}
+                        {ruleResponse?.data?.updatedAt
+                          ? new Date(ruleResponse.data.updatedAt).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          : 'Not updated yet'}
+                      </p>
                     </div>
                     <Button
-                      onClick={() =>
-                        openPolicyEditor(
-                          activeSection === 'privacy'
-                            ? 'privacy'
-                            : activeSection === 'about'
-                              ? 'about'
-                              : 'terms'
-                        )
-                      }
+                      onClick={openRuleEditor}
                       className="!bg-brand-600 hover:!bg-brand-700 font-bold inline-flex items-center gap-1.5"
                     >
                       <Edit3 className="h-3.5 w-3.5" /> Edit Document
@@ -789,7 +777,13 @@ export function CmsPanel() {
                   </div>
 
                   <div className="rounded-xl border border-slate-200/80 bg-slate-50/40 p-6 text-sm text-slate-700 leading-relaxed font-sans max-h-[500px] overflow-y-auto whitespace-pre-line">
-                    {activePolicy.content}
+                    {ruleResponse?.data?.content ? (
+                      ruleResponse.data.content
+                    ) : (
+                      <span className="text-slate-400 italic">
+                        No content published yet. Click &quot;Edit Document&quot; above to add content.
+                      </span>
+                    )}
                   </div>
                 </div>
               )}

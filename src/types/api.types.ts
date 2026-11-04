@@ -270,6 +270,24 @@ export interface CmsPage {
   preview: string
 }
 
+// ─── Rules (About, Terms, Policy) ───────────────────────────────────────────
+
+export type RuleType = 'about' | 'terms' | 'policy'
+
+export interface RuleItem {
+  _id: string
+  content: string
+  type?: RuleType
+  isDeleted?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface SaveRuleRequest {
+  content: string
+  type: RuleType
+}
+
 // ─── FAQs ────────────────────────────────────────────────────────────────────
 
 export type FaqRole = 'landlord' | 'tenant' | 'contractor'
