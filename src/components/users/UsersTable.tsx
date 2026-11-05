@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   Ban,
   CheckCircle,
@@ -59,179 +59,185 @@ export function UsersTable() {
     }))
   }, [rawUsers])
 
-  const flash = (msg: string) => {
+  const flash = useCallback((msg: string) => {
     setNotice(msg)
     window.setTimeout(() => setNotice(null), 3500)
-  }
+  }, [])
 
   // Toggle user status: active <-> inactive
-  const handleToggleStatus = async (user: BackendUser) => {
-    const nextStatus = user.status === 'active' ? 'inactive' : 'active'
-    try {
-      await updateUserStatus({ id: user._id, status: nextStatus }).unwrap()
-      flash(`User ${user.name} is now ${nextStatus}.`)
-    } catch {
-      flash('Failed to update user status. Please check your connection.')
-    }
-  }
+  const handleToggleStatus = useCallback(
+    async (user: BackendUser) => {
+      const nextStatus = user.status === 'active' ? 'inactive' : 'active'
+      try {
+        await updateUserStatus({ id: user._id, status: nextStatus }).unwrap()
+        flash(`User ${user.name} is now ${nextStatus}.`)
+      } catch {
+        flash('Failed to update user status. Please check your connection.')
+      }
+    },
+    [updateUserStatus, flash],
+  )
 
-  const columns = [
-    {
-      key: 'name',
-      header: 'User',
-      render: (user: UserTableRow) => (
-        <div className="flex items-center gap-3">
-          <Avatar name={user.name} src={user.profileImage} size="sm" />
-          <div className="min-w-0">
-            <p className="font-bold text-slate-900 text-sm truncate">{user.name}</p>
-            <p className="text-xs text-slate-500 font-mono truncate">{user.email}</p>
+  const columns = useMemo(
+    () => [
+      {
+        key: 'name',
+        header: 'User',
+        render: (user: UserTableRow) => (
+          <div className="flex items-center gap-3">
+            <Avatar name={user.name} src={user.profileImage} size="sm" />
+            <div className="min-w-0">
+              <p className="font-bold text-slate-900 text-sm truncate">{user.name}</p>
+              <p className="text-xs text-slate-500 font-mono truncate">{user.email}</p>
+            </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      key: 'role',
-      header: 'Role',
-      render: (user: UserTableRow) => {
-        if (user.role === 'landlord') {
-          return (
-            <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-bold text-brand-700 border border-blue-100 capitalize">
-              {user.role}
-            </span>
-          )
-        }
-        if (user.role === 'tenant') {
-          return (
-            <span className="inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-xs font-bold text-purple-700 border border-purple-100 capitalize">
-              {user.role}
-            </span>
-          )
-        }
-        return (
-          <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 border border-amber-100 capitalize">
-            {user.role}
-          </span>
-        )
-      },
-    },
-    {
-      key: 'portfolio',
-      header: 'Portfolio',
-      render: (user: UserTableRow) =>
-        user.role === 'landlord' ? (
-          <div>
-            <p className="font-bold text-slate-900 text-sm">
-              {user.portfolio?.formattedPortfolio || `${user.portfolio?.propertiesCount ?? 0} Properties`}
-            </p>
-            {user.portfolio?.formattedUnits && (
-              <p className="text-[11px] text-slate-400 font-medium">{user.portfolio.formattedUnits}</p>
-            )}
-          </div>
-        ) : (
-          <span className="text-xs text-slate-400">—</span>
         ),
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (user: UserTableRow) => {
-        if (user.status === 'active') {
+      },
+      {
+        key: 'role',
+        header: 'Role',
+        render: (user: UserTableRow) => {
+          if (user.role === 'landlord') {
+            return (
+              <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-bold text-brand-700 border border-blue-100 capitalize">
+                {user.role}
+              </span>
+            )
+          }
+          if (user.role === 'tenant') {
+            return (
+              <span className="inline-flex items-center rounded-md bg-purple-50 px-2 py-0.5 text-xs font-bold text-purple-700 border border-purple-100 capitalize">
+                {user.role}
+              </span>
+            )
+          }
           return (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Active
+            <span className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700 border border-amber-100 capitalize">
+              {user.role}
             </span>
           )
-        }
-        return (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600 border border-slate-200">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-            {user.status || 'Inactive'}
+        },
+      },
+      {
+        key: 'portfolio',
+        header: 'Portfolio',
+        render: (user: UserTableRow) =>
+          user.role === 'landlord' ? (
+            <div>
+              <p className="font-bold text-slate-900 text-sm">
+                {user.portfolio?.formattedPortfolio || `${user.portfolio?.propertiesCount ?? 0} Properties`}
+              </p>
+              {user.portfolio?.formattedUnits && (
+                <p className="text-[11px] text-slate-400 font-medium">{user.portfolio.formattedUnits}</p>
+              )}
+            </div>
+          ) : (
+            <span className="text-xs text-slate-400">—</span>
+          ),
+      },
+      {
+        key: 'status',
+        header: 'Status',
+        render: (user: UserTableRow) => {
+          if (user.status === 'active') {
+            return (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-100">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Active
+              </span>
+            )
+          }
+          return (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold text-slate-600 border border-slate-200">
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+              {user.status || 'Inactive'}
+            </span>
+          )
+        },
+      },
+      {
+        key: 'plan',
+        header: 'Subscription',
+        render: (user: UserTableRow) => {
+          if (user.role !== 'landlord') {
+            return <span className="text-xs text-slate-400">Not applicable</span>
+          }
+          if (!user.plan) {
+            return <span className="text-xs text-slate-400">Free / No plan</span>
+          }
+          return (
+            <div>
+              <p className="text-slate-800 font-semibold text-xs">{user.plan.packageName}</p>
+              <p className="text-[11px] text-slate-400 font-medium">{user.plan.formattedPrice}</p>
+            </div>
+          )
+        },
+      },
+      {
+        key: 'joined',
+        header: 'Joined',
+        render: (user: UserTableRow) => (
+          <span className="text-xs text-slate-500">
+            {new Date(user.createdAt).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
           </span>
-        )
+        ),
       },
-    },
-    {
-      key: 'plan',
-      header: 'Subscription',
-      render: (user: UserTableRow) => {
-        if (user.role !== 'landlord') {
-          return <span className="text-xs text-slate-400">Not applicable</span>
-        }
-        if (!user.plan) {
-          return <span className="text-xs text-slate-400">Free / No plan</span>
-        }
-        return (
-          <div>
-            <p className="text-slate-800 font-semibold text-xs">{user.plan.packageName}</p>
-            <p className="text-[11px] text-slate-400 font-medium">{user.plan.formattedPrice}</p>
+      {
+        key: 'actions',
+        header: 'Actions',
+        render: (user: UserTableRow) => (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* View Details */}
+            <Button
+              variant="secondary"
+              className="!px-2.5 !py-1.5 !text-xs font-semibold inline-flex items-center gap-1"
+              onClick={() => setSelectedUserId(user._id)}
+            >
+              <Eye className="h-3.5 w-3.5 text-slate-500" />
+              Details
+            </Button>
+
+            {/* Toggle Status (Active / Inactive) */}
+            <Button
+              variant="secondary"
+              className={cn(
+                '!px-2.5 !py-1.5 !text-xs font-semibold inline-flex items-center gap-1',
+                user.status === 'active'
+                  ? '!text-amber-700 hover:!bg-amber-50'
+                  : '!text-emerald-700 hover:!bg-emerald-50',
+              )}
+              onClick={() => handleToggleStatus(user)}
+              disabled={isUpdatingStatus}
+            >
+              {user.status === 'active' ? (
+                <>
+                  <Ban className="h-3.5 w-3.5" /> Deactivate
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="h-3.5 w-3.5" /> Activate
+                </>
+              )}
+            </Button>
+
+            {/* Remove */}
+            <Button
+              variant="ghost"
+              className="!px-2 !py-1.5 !text-xs !text-red-600 hover:!bg-red-50 font-semibold"
+              onClick={() => setRemoveTarget(user)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
           </div>
-        )
+        ),
       },
-    },
-    {
-      key: 'joined',
-      header: 'Joined',
-      render: (user: UserTableRow) => (
-        <span className="text-xs text-slate-500">
-          {new Date(user.createdAt).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
-        </span>
-      ),
-    },
-    {
-      key: 'actions',
-      header: 'Actions',
-      render: (user: UserTableRow) => (
-        <div className="flex flex-wrap items-center gap-1.5">
-          {/* View Details */}
-          <Button
-            variant="secondary"
-            className="!px-2.5 !py-1.5 !text-xs font-semibold inline-flex items-center gap-1"
-            onClick={() => setSelectedUserId(user._id)}
-          >
-            <Eye className="h-3.5 w-3.5 text-slate-500" />
-            Details
-          </Button>
-
-          {/* Toggle Status (Active / Inactive) */}
-          <Button
-            variant="secondary"
-            className={cn(
-              '!px-2.5 !py-1.5 !text-xs font-semibold inline-flex items-center gap-1',
-              user.status === 'active'
-                ? '!text-amber-700 hover:!bg-amber-50'
-                : '!text-emerald-700 hover:!bg-emerald-50'
-            )}
-            onClick={() => handleToggleStatus(user)}
-            disabled={isUpdatingStatus}
-          >
-            {user.status === 'active' ? (
-              <>
-                <Ban className="h-3.5 w-3.5" /> Deactivate
-              </>
-            ) : (
-              <>
-                <CheckCircle className="h-3.5 w-3.5" /> Activate
-              </>
-            )}
-          </Button>
-
-          {/* Remove */}
-          <Button
-            variant="ghost"
-            className="!px-2 !py-1.5 !text-xs !text-red-600 hover:!bg-red-50 font-semibold"
-            onClick={() => setRemoveTarget(user)}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-      ),
-    },
-  ]
+    ],
+    [handleToggleStatus, isUpdatingStatus],
+  )
 
   // Dynamic stat counts
   const totalCount = usersResponse?.meta?.total ?? rawUsers.length

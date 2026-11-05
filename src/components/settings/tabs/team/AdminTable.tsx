@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Avatar } from '@/components/shared/Avatar'
 import { cn } from '@/lib/utils'
@@ -12,7 +13,7 @@ interface AdminTableProps {
   onDeleteClick: (admin: AdminItem) => void
 }
 
-export function AdminTable({
+export const AdminTable = memo(function AdminTable({
   admins,
   currentUserId,
   currentUserEmail,
@@ -146,5 +147,5 @@ export function AdminTable({
       </table>
     </div>
   )
-}
+})
 

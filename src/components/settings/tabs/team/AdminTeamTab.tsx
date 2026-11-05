@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Loader2, Plus,  } from 'lucide-react'
 import {
   useGetAdminsQuery,
@@ -47,16 +47,19 @@ export function AdminTeamTab({ onFlash }: AdminTeamTabProps) {
   }, [adminsList, adminSearch])
 
   // ─── Status Toggle ────────────────────────────────────────────────────────
-  const handleToggleStatus = async (admin: AdminItem) => {
-    const nextStatus = admin.status === 'active' ? 'inactive' : 'active'
-    try {
-      await updateAdminStatus({ id: admin._id, status: nextStatus }).unwrap()
-      onFlash(`Admin status updated to "${nextStatus}".`)
-    } catch (err: any) {
-      const msg = err?.data?.message || 'Failed to update admin status.'
-      onFlash(msg)
-    }
-  }
+  const handleToggleStatus = useCallback(
+    async (admin: AdminItem) => {
+      const nextStatus = admin.status === 'active' ? 'inactive' : 'active'
+      try {
+        await updateAdminStatus({ id: admin._id, status: nextStatus }).unwrap()
+        onFlash(`Admin status updated to "${nextStatus}".`)
+      } catch (err: any) {
+        const msg = err?.data?.message || 'Failed to update admin status.'
+        onFlash(msg)
+      }
+    },
+    [updateAdminStatus, onFlash],
+  )
 
   return (
     <div className="space-y-5">

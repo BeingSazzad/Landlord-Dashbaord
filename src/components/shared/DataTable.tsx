@@ -1,19 +1,19 @@
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 
-interface Column<T> {
+export interface Column<T> {
   key: string
   header: string
   render: (row: T) => ReactNode
   className?: string
 }
 
-interface DataTableProps<T> {
+export interface DataTableProps<T> {
   columns: Column<T>[]
   data: T[]
   emptyMessage?: string
 }
 
-export function DataTable<T extends { id: number | string }>({
+function DataTableInner<T extends { id: number | string }>({
   columns,
   data,
   emptyMessage = 'No records found',
@@ -55,3 +55,5 @@ export function DataTable<T extends { id: number | string }>({
     </div>
   )
 }
+
+export const DataTable = memo(DataTableInner) as typeof DataTableInner

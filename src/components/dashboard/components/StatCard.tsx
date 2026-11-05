@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -27,7 +27,7 @@ const variantStyles = {
   black: 'bg-blue-50 text-brand-600 border border-blue-100',
 }
 
-export function StatCard({
+export const StatCard = memo(function StatCard({
   label,
   value,
   hint,
@@ -102,4 +102,4 @@ export function StatCard({
       </div>
     </div>
   )
-}
+})

@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Pencil, Trash2 } from 'lucide-react'
 import type { FaqItem } from '@/types/api.types'
 
@@ -10,7 +11,7 @@ interface FaqItemAccordionProps {
   onDelete: () => void
 }
 
-export function FaqItemAccordion({
+export const FaqItemAccordion = memo(function FaqItemAccordion({
   faq,
   index,
   isExpanded,
@@ -62,5 +63,6 @@ export function FaqItemAccordion({
       )}
     </div>
   )
-}
+})
+
 

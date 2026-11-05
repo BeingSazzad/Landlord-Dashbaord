@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { cn, getImageUrl, initials } from '@/lib/utils'
 
 interface AvatarProps {
@@ -8,7 +9,7 @@ interface AvatarProps {
 
 const sizes = { sm: 'h-12 w-12 text-xs', md: 'h-16 w-16 text-sm', lg: 'h-24 w-24 text-base' }
 
-export function Avatar({ name, src, size = 'md' }: AvatarProps) {
+export const Avatar = memo(function Avatar({ name, src, size = 'md' }: AvatarProps) {
   const resolvedSrc = getImageUrl(src)
   if (resolvedSrc) {
     return <img src={resolvedSrc} alt={name} className={cn('rounded-full object-cover', sizes[size])} />
@@ -23,4 +24,4 @@ export function Avatar({ name, src, size = 'md' }: AvatarProps) {
       {initials(name)}
     </span>
   )
-}
+})
