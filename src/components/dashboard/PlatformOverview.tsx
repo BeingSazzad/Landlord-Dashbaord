@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -6,13 +7,50 @@ import {
   Users,
 } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
-import { getLandlordSubscriptions, getPlatformStats } from '@/lib/mockData'
+import { getLandlordSubscriptions } from '@/lib/mockData'
 import { formatMoney } from '@/lib/utils'
 import { StatCard } from './components/StatCard'
 import { RevenueSplineChart, UserGrowthDualBarChart } from './components/Charts'
+import {
+  useGetDashboardStatsQuery,
+  useGetMonthlyRevenueQuery,
+  useGetUserGrowthQuery,
+} from '@/services/endpoints/dashboardApi'
 
 export function PlatformOverview() {
-  const stats = getPlatformStats()
+  const [growthYear, setGrowthYear] = useState('2026')
+  const [revenueYear, setRevenueYear] = useState('2026')
+
+  // RTK Query hooks
+  const { data: statsResponse, isLoading: isStatsLoading } = useGetDashboardStatsQuery()
+  const { data: revenueResponse, isLoading: isRevenueLoading } = useGetMonthlyRevenueQuery({ year: revenueYear })
+  const { data: growthResponse, isLoading: isGrowthLoading } = useGetUserGrowthQuery({ year: growthYear })
+
+  const stats = statsResponse?.data
+
+  // Format revenue data for the spline chart
+  const revenuePoints = useMemo(() => {
+    if (revenueResponse?.data?.revenue) {
+      return revenueResponse.data.revenue.map((r) => ({
+        month: r.month,
+        revenue: r.revenue,
+      }))
+    }
+    return undefined
+  }, [revenueResponse])
+
+  // Format user growth data for the dual bar chart
+  const growthPoints = useMemo(() => {
+    if (growthResponse?.data?.growth) {
+      return growthResponse.data.growth.map((g) => ({
+        month: g.month,
+        landlords: g.landlords,
+        tenants: g.tenants,
+      }))
+    }
+    return undefined
+  }, [growthResponse])
+
   const recentSubs = getLandlordSubscriptions().slice(0, 4)
 
   return (
@@ -22,7 +60,7 @@ export function PlatformOverview() {
         {/* Total Landlords */}
         <StatCard
           label="Total Landlords"
-          value={String(stats.landlords)}
+          value={isStatsLoading ? '...' : String(stats?.totalLandlords ?? 0)}
           icon={Users}
           iconVariant="blue"
         />
@@ -30,7 +68,7 @@ export function PlatformOverview() {
         {/* Monthly Revenue */}
         <StatCard
           label="Monthly Revenue"
-          value={formatMoney(stats.mrr)}
+          value={isStatsLoading ? '...' : formatMoney(stats?.monthlyRevenue ?? 0)}
           icon={CreditCard}
           iconVariant="blue"
         />
@@ -38,7 +76,7 @@ export function PlatformOverview() {
         {/* Active Subscriptions */}
         <StatCard
           label="Active Subscriptions"
-          value={String(stats.activeSubscriptions)}
+          value={isStatsLoading ? '...' : String(stats?.activeSubscriptions ?? 0)}
           icon={Layers}
           iconVariant="blue"
         />
@@ -46,8 +84,18 @@ export function PlatformOverview() {
 
       {/* Dual Visual Charts: User Growth & Subscription Revenue */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <UserGrowthDualBarChart />
-        <RevenueSplineChart />
+        <UserGrowthDualBarChart
+          data={growthPoints}
+          selectedYear={growthYear}
+          onYearChange={setGrowthYear}
+          isLoading={isGrowthLoading}
+        />
+        <RevenueSplineChart
+          data={revenuePoints}
+          selectedYear={revenueYear}
+          onYearChange={setRevenueYear}
+          isLoading={isRevenueLoading}
+        />
       </div>
 
       {/* Recent Subscriptions (Matching media_1793094701088.png) */}

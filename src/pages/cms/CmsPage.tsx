@@ -6,7 +6,7 @@ export function CmsPage() {
     <>
       <PageHeader
         title="CMS"
-        description="Manage website policies, FAQs, contractor trades, regulatory compliance partners, and branding assets for the mobile app."
+        description="Mobile app FAQs, privacy policy, and terms."
       />
       <CmsPanel />
     </>

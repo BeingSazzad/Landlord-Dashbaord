@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { ROUTES } from '@/constants/routes'
 import { useAppSelector } from '@/store/hooks'
-import { cn } from '@/lib/utils'
+import { cn, getImageUrl, initials } from '@/lib/utils'
 
 interface TopbarProps {
   pageTitle: string
@@ -231,15 +231,21 @@ export function Topbar({ pageTitle }: TopbarProps) {
           className="flex items-center gap-3 rounded-xl p-1.5 pr-2 transition hover:bg-slate-50 cursor-pointer"
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-brand-600 to-blue-500 font-bold text-white shadow-xs text-xs overflow-hidden">
-            {user?.avatarUrl ? (
-              <img src={user.avatarUrl} alt={user.name} className="h-full w-full object-cover" />
+            {getImageUrl(user?.profileImage || user?.avatarUrl) ? (
+              <img
+                src={getImageUrl(user?.profileImage || user?.avatarUrl)}
+                alt={user?.name || 'User'}
+                className="h-full w-full object-cover"
+              />
             ) : (
-              <span>SC</span>
+              <span>{initials(user?.name || 'Super Admin')}</span>
             )}
           </div>
           <div className="hidden min-w-0 text-left sm:block">
-            <p className="truncate text-xs font-bold text-slate-900">{user?.name || 'Sazzad Chowdhury'}</p>
-            <p className="truncate text-[11px] font-medium text-slate-400">Super Admin</p>
+            <p className="truncate text-xs font-bold text-slate-900">{user?.name || 'Super Admin'}</p>
+            <p className="truncate text-[11px] font-medium text-slate-400 capitalize">
+              {user?.role ? user.role.replace('_', ' ') : 'Administrator'}
+            </p>
           </div>
         </Link>
       </div>

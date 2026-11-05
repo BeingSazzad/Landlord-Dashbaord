@@ -5,8 +5,8 @@ export function SubscriptionsPage() {
   return (
     <>
       <PageHeader
-        title="Subscriptions & Plans"
-        description="Manage landlord subscription packages, pricing tiers, and active memberships."
+        title="Package Plans"
+        description="Create, configure, and manage landlord subscription pricing tiers and platform limits."
       />
       <SubscriptionsPanel />
     </>

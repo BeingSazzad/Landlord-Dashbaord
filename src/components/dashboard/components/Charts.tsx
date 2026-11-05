@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Loader2 } from 'lucide-react'
 import { cn, formatMoney } from '@/lib/utils'
 
 function YearDropdown({ selectedYear, onSelect }: { selectedYear: string; onSelect: (y: string) => void }) {
@@ -55,15 +55,15 @@ function YearDropdown({ selectedYear, onSelect }: { selectedYear: string; onSele
   )
 }
 
-interface MonthlyGrowthPoint {
+export interface MonthlyGrowthPoint {
   month: string
   landlords: number
   tenants: number
 }
 
-interface MonthlyRevenuePoint {
+export interface MonthlyRevenuePoint {
   month: string
-  gmv: number
+  gmv?: number
   revenue: number
 }
 
@@ -97,10 +97,27 @@ export const MOCK_12_MONTH_REVENUE: MonthlyRevenuePoint[] = [
   { month: 'Dec', gmv: 194000, revenue: 32500 },
 ]
 
-export function UserGrowthDualBarChart({ data = MOCK_12_MONTH_GROWTH }: { data?: MonthlyGrowthPoint[] }) {
-  const [selectedYear, setSelectedYear] = useState('2026')
+export function UserGrowthDualBarChart({
+  data = MOCK_12_MONTH_GROWTH,
+  selectedYear: controlledYear,
+  onYearChange,
+  isLoading = false,
+}: {
+  data?: MonthlyGrowthPoint[]
+  selectedYear?: string
+  onYearChange?: (year: string) => void
+  isLoading?: boolean
+}) {
+  const [internalYear, setInternalYear] = useState('2026')
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
-  const maxVal = Math.max(...data.map((d) => Math.max(d.landlords, d.tenants)), 1) * 1.15
+  const currentYear = controlledYear ?? internalYear
+
+  const handleYearSelect = (y: string) => {
+    setInternalYear(y)
+    onYearChange?.(y)
+  }
+
+  const maxVal = Math.max(...data.map((d) => Math.max(d.landlords || 0, d.tenants || 0)), 1) * 1.15
 
   return (
     <div className="admin-card flex flex-col justify-between p-6">
@@ -123,74 +140,99 @@ export function UserGrowthDualBarChart({ data = MOCK_12_MONTH_GROWTH }: { data?:
             </span>
           </div>
 
-          <YearDropdown selectedYear={selectedYear} onSelect={setSelectedYear} />
+          <YearDropdown selectedYear={currentYear} onSelect={handleYearSelect} />
         </div>
       </div>
 
       {/* Chart Canvas */}
-      <div className="relative mt-4">
-        {/* Floating tooltip only on hover */}
-        <div className="h-4 text-right text-xs">
-          {hoveredIdx !== null && (
-            <span className="font-semibold text-slate-700 animate-fade-in">
-              {data[hoveredIdx].month}: <span className="text-brand-600 font-bold">{data[hoveredIdx].landlords} landlords</span>,{' '}
-              <span className="text-blue-500 font-bold">{data[hoveredIdx].tenants} tenants</span>
-            </span>
-          )}
-        </div>
-
-        <div className="flex h-44 items-end justify-between gap-1 sm:gap-2.5 pt-2">
-          {data.map((item, idx) => {
-            const h1 = (item.landlords / maxVal) * 100
-            const h2 = (item.tenants / maxVal) * 100
-            const isHovered = hoveredIdx === idx
-
-            return (
-              <div
-                key={item.month}
-                className="group flex flex-1 flex-col items-center justify-end h-full cursor-pointer"
-                onMouseEnter={() => setHoveredIdx(idx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-              >
-                <div className="flex items-end justify-center gap-1 w-full max-w-[28px] h-full">
-                  {/* Primary Brand Blue bar (Landlords) */}
-                  <div
-                    className={cn(
-                      'w-1/2 rounded-t-[3px] bg-brand-600 transition-all duration-200',
-                      isHovered ? 'bg-brand-700 brightness-110 shadow-sm' : 'hover:opacity-90'
-                    )}
-                    style={{ height: `${Math.max(6, h1)}%` }}
-                  />
-                  {/* Harmonizing Soft Blue bar (Tenants) */}
-                  <div
-                    className={cn(
-                      'w-1/2 rounded-t-[3px] bg-blue-300 transition-all duration-200',
-                      isHovered ? 'bg-blue-400 brightness-110 shadow-sm' : 'hover:opacity-90'
-                    )}
-                    style={{ height: `${Math.max(6, h2)}%` }}
-                  />
-                </div>
-
-                <span
-                  className={cn(
-                    'mt-2.5 text-[11px] font-medium transition-colors',
-                    isHovered ? 'text-brand-700 font-bold' : 'text-slate-400'
-                  )}
-                >
-                  {item.month}
+      <div className="relative mt-4 min-h-[190px]">
+        {isLoading ? (
+          <div className="h-44 flex flex-col items-center justify-center gap-2 text-slate-400">
+            <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+            <span className="text-xs">Loading growth data...</span>
+          </div>
+        ) : (
+          <>
+            {/* Floating tooltip only on hover */}
+            <div className="h-4 text-right text-xs">
+              {hoveredIdx !== null && data[hoveredIdx] && (
+                <span className="font-semibold text-slate-700 animate-fade-in">
+                  {data[hoveredIdx].month}: <span className="text-brand-600 font-bold">{data[hoveredIdx].landlords} landlords</span>,{' '}
+                  <span className="text-blue-500 font-bold">{data[hoveredIdx].tenants} tenants</span>
                 </span>
-              </div>
-            )
-          })}
-        </div>
+              )}
+            </div>
+
+            <div className="flex h-44 items-end justify-between gap-1 sm:gap-2.5 pt-2">
+              {data.map((item, idx) => {
+                const h1 = ((item.landlords || 0) / maxVal) * 100
+                const h2 = ((item.tenants || 0) / maxVal) * 100
+                const isHovered = hoveredIdx === idx
+
+                return (
+                  <div
+                    key={item.month}
+                    className="group flex flex-1 flex-col items-center justify-end h-full cursor-pointer"
+                    onMouseEnter={() => setHoveredIdx(idx)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                  >
+                    <div className="flex items-end justify-center gap-1 w-full max-w-[28px] h-full">
+                      {/* Primary Brand Blue bar (Landlords) */}
+                      <div
+                        className={cn(
+                          'w-1/2 rounded-t-[3px] bg-brand-600 transition-all duration-200',
+                          isHovered ? 'bg-brand-700 brightness-110 shadow-sm' : 'hover:opacity-90'
+                        )}
+                        style={{ height: `${Math.max(6, h1)}%` }}
+                      />
+                      {/* Harmonizing Soft Blue bar (Tenants) */}
+                      <div
+                        className={cn(
+                          'w-1/2 rounded-t-[3px] bg-blue-300 transition-all duration-200',
+                          isHovered ? 'bg-blue-400 brightness-110 shadow-sm' : 'hover:opacity-90'
+                        )}
+                        style={{ height: `${Math.max(6, h2)}%` }}
+                      />
+                    </div>
+
+                    <span
+                      className={cn(
+                        'mt-2.5 text-[11px] font-medium transition-colors',
+                        isHovered ? 'text-brand-700 font-bold' : 'text-slate-400'
+                      )}
+                    >
+                      {item.month}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
 }
 
-export function RevenueSplineChart({ data = MOCK_12_MONTH_REVENUE }: { data?: MonthlyRevenuePoint[] }) {
-  const [selectedYear, setSelectedYear] = useState('2026')
+export function RevenueSplineChart({
+  data = MOCK_12_MONTH_REVENUE,
+  selectedYear: controlledYear,
+  onYearChange,
+  isLoading = false,
+}: {
+  data?: MonthlyRevenuePoint[]
+  selectedYear?: string
+  onYearChange?: (year: string) => void
+  isLoading?: boolean
+}) {
+  const [internalYear, setInternalYear] = useState('2026')
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
+  const currentYear = controlledYear ?? internalYear
+
+  const handleYearSelect = (y: string) => {
+    setInternalYear(y)
+    onYearChange?.(y)
+  }
 
   const width = 640
   const height = 220
@@ -198,12 +240,14 @@ export function RevenueSplineChart({ data = MOCK_12_MONTH_REVENUE }: { data?: Mo
   const paddingTop = 25
   const paddingBottom = 30
 
-  const maxRevenue = Math.max(...data.map((d) => d.revenue), 1) * 1.15
+  const safeData = data.length > 0 ? data : [{ month: 'Jan', revenue: 0 }]
+  const maxRevenue = Math.max(...safeData.map((d) => d.revenue || 0), 1) * 1.15
   const minRevenue = 0
 
-  const points = data.map((d, index) => {
-    const x = paddingX + (index / (data.length - 1)) * (width - paddingX * 2)
-    const y = paddingTop + (1 - (d.revenue - minRevenue) / (maxRevenue - minRevenue)) * (height - paddingTop - paddingBottom)
+  const points = safeData.map((d, index) => {
+    const denom = safeData.length > 1 ? safeData.length - 1 : 1
+    const x = paddingX + (index / denom) * (width - paddingX * 2)
+    const y = paddingTop + (1 - ((d.revenue || 0) - minRevenue) / (maxRevenue - minRevenue)) * (height - paddingTop - paddingBottom)
     return { x, y, data: d }
   })
 
@@ -240,110 +284,122 @@ export function RevenueSplineChart({ data = MOCK_12_MONTH_REVENUE }: { data?: Mo
             </span>
           </div>
 
-          <YearDropdown selectedYear={selectedYear} onSelect={setSelectedYear} />
+          <YearDropdown selectedYear={currentYear} onSelect={handleYearSelect} />
         </div>
       </div>
 
       {/* Interactive SVG Chart */}
-      <div className="relative mt-4">
-        {/* Dynamic hover indicator badge (only shows on hover) */}
-        <div className="h-4 text-right text-xs">
-          {hoveredIdx !== null && (
-            <span className="font-semibold text-slate-700 animate-fade-in">
-              {data[hoveredIdx].month}: <span className="text-emerald-600 font-bold">{formatMoney(data[hoveredIdx].revenue)} MRR</span> ·{' '}
-              <span className="text-slate-500">Target: {formatMoney(data[hoveredIdx].gmv)}</span>
-            </span>
-          )}
-        </div>
+      <div className="relative mt-4 min-h-[190px]">
+        {isLoading ? (
+          <div className="h-44 flex flex-col items-center justify-center gap-2 text-slate-400">
+            <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+            <span className="text-xs">Loading revenue data...</span>
+          </div>
+        ) : (
+          <>
+            {/* Dynamic hover indicator badge (only shows on hover) */}
+            <div className="h-4 text-right text-xs">
+              {hoveredIdx !== null && safeData[hoveredIdx] && (
+                <span className="font-semibold text-slate-700 animate-fade-in">
+                  {safeData[hoveredIdx].month}:{' '}
+                  <span className="text-emerald-600 font-bold">{formatMoney(safeData[hoveredIdx].revenue)}</span>
+                  {safeData[hoveredIdx].gmv ? (
+                    <span className="text-slate-500"> · Target: {formatMoney(safeData[hoveredIdx].gmv!)}</span>
+                  ) : null}
+                </span>
+              )}
+            </div>
 
-        <div className="relative w-full pt-1">
-          <div className="relative h-36 w-full">
-            <svg
-              viewBox={`0 0 ${width} ${height}`}
-              className="h-full w-full overflow-visible"
-              preserveAspectRatio="none"
-            >
-              <defs>
-                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-                  <stop offset="95%" stopColor="#10b981" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-
-              {/* Subtle horizontal grid lines */}
-              {[0.25, 0.5, 0.75, 1].map((ratio) => {
-                const y = paddingTop + (1 - ratio) * (height - paddingTop - paddingBottom)
-                return (
-                  <line
-                    key={ratio}
-                    x1={paddingX}
-                    y1={y}
-                    x2={width - paddingX}
-                    y2={y}
-                    stroke="#f1f5f9"
-                    strokeWidth="1"
-                    strokeDasharray="4 4"
-                  />
-                )
-              })}
-
-              {/* Gradient area under line */}
-              <path d={areaD} fill="url(#revenueGradient)" />
-
-              {/* Smooth curve line */}
-              <path
-                d={pathD}
-                fill="none"
-                stroke="#10b981"
-                strokeWidth="2.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-
-            {/* Perfect circular point nodes (1:1 aspect ratio, never stretched) */}
-            {points.map((pt, idx) => {
-              const leftPercent = (pt.x / width) * 100
-              const topPercent = (pt.y / height) * 100
-              const isHovered = hoveredIdx === idx
-              return (
-                <div
-                  key={idx}
-                  style={{ left: `${leftPercent}%`, top: `${topPercent}%` }}
-                  className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 p-2 flex items-center justify-center group"
-                  onMouseEnter={() => setHoveredIdx(idx)}
-                  onMouseLeave={() => setHoveredIdx(null)}
+            <div className="relative w-full pt-1">
+              <div className="relative h-36 w-full">
+                <svg
+                  viewBox={`0 0 ${width} ${height}`}
+                  className="h-full w-full overflow-visible"
+                  preserveAspectRatio="none"
                 >
-                  <div
-                    className={cn(
-                      'rounded-full bg-white border-2 border-emerald-500 transition-all duration-150',
-                      isHovered
-                        ? 'h-3.5 w-3.5 ring-4 ring-emerald-500/25 scale-110 shadow-sm'
-                        : 'h-2 w-2 shadow-xs group-hover:scale-125'
-                    )}
-                  />
-                </div>
-              )
-            })}
-          </div>
+                  <defs>
+                    <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity="0.0" />
+                    </linearGradient>
+                  </defs>
 
-          {/* Month labels at bottom with proper spacing */}
-          <div className="flex justify-between px-2 pt-3 pb-1 text-[11px] font-medium text-slate-400">
-            {data.map((item, idx) => (
-              <span
-                key={item.month}
-                className={cn(
-                  'cursor-pointer transition-colors',
-                  hoveredIdx === idx ? 'text-emerald-700 font-bold' : 'hover:text-slate-600'
-                )}
-                onMouseEnter={() => setHoveredIdx(idx)}
-                onMouseLeave={() => setHoveredIdx(null)}
-              >
-                {item.month}
-              </span>
-            ))}
-          </div>
-        </div>
+                  {/* Subtle horizontal grid lines */}
+                  {[0.25, 0.5, 0.75, 1].map((ratio) => {
+                    const y = paddingTop + (1 - ratio) * (height - paddingTop - paddingBottom)
+                    return (
+                      <line
+                        key={ratio}
+                        x1={paddingX}
+                        y1={y}
+                        x2={width - paddingX}
+                        y2={y}
+                        stroke="#f1f5f9"
+                        strokeWidth="1"
+                        strokeDasharray="4 4"
+                      />
+                    )
+                  })}
+
+                  {/* Gradient area under line */}
+                  <path d={areaD} fill="url(#revenueGradient)" />
+
+                  {/* Smooth curve line */}
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="2.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+
+                {/* Point nodes */}
+                {points.map((pt, idx) => {
+                  const leftPercent = (pt.x / width) * 100
+                  const topPercent = (pt.y / height) * 100
+                  const isHovered = hoveredIdx === idx
+                  return (
+                    <div
+                      key={idx}
+                      style={{ left: `${leftPercent}%`, top: `${topPercent}%` }}
+                      className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 p-2 flex items-center justify-center group"
+                      onMouseEnter={() => setHoveredIdx(idx)}
+                      onMouseLeave={() => setHoveredIdx(null)}
+                    >
+                      <div
+                        className={cn(
+                          'rounded-full bg-white border-2 border-emerald-500 transition-all duration-150',
+                          isHovered
+                            ? 'h-3.5 w-3.5 ring-4 ring-emerald-500/25 scale-110 shadow-sm'
+                            : 'h-2 w-2 shadow-xs group-hover:scale-125'
+                        )}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Month labels at bottom */}
+              <div className="flex justify-between px-2 pt-3 pb-1 text-[11px] font-medium text-slate-400">
+                {safeData.map((item, idx) => (
+                  <span
+                    key={item.month}
+                    className={cn(
+                      'cursor-pointer transition-colors',
+                      hoveredIdx === idx ? 'text-emerald-700 font-bold' : 'hover:text-slate-600'
+                    )}
+                    onMouseEnter={() => setHoveredIdx(idx)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                  >
+                    {item.month}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
