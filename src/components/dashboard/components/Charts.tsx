@@ -1,8 +1,14 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo, memo } from 'react'
 import { ChevronDown, Loader2 } from 'lucide-react'
 import { cn, formatMoney } from '@/lib/utils'
 
-function YearDropdown({ selectedYear, onSelect }: { selectedYear: string; onSelect: (y: string) => void }) {
+const YearDropdown = memo(function YearDropdown({
+  selectedYear,
+  onSelect,
+}: {
+  selectedYear: string
+  onSelect: (y: string) => void
+}) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -43,7 +49,7 @@ function YearDropdown({ selectedYear, onSelect }: { selectedYear: string; onSele
                 'w-full px-3 py-1.5 text-left text-xs font-medium transition cursor-pointer',
                 selectedYear === year
                   ? 'bg-blue-50 text-brand-600 font-bold'
-                  : 'text-slate-700 hover:bg-slate-50'
+                  : 'text-slate-700 hover:bg-slate-50',
               )}
             >
               {year}
@@ -53,7 +59,7 @@ function YearDropdown({ selectedYear, onSelect }: { selectedYear: string; onSele
       )}
     </div>
   )
-}
+})
 
 export interface MonthlyGrowthPoint {
   month: string
@@ -97,7 +103,7 @@ export const MOCK_12_MONTH_REVENUE: MonthlyRevenuePoint[] = [
   { month: 'Dec', gmv: 194000, revenue: 32500 },
 ]
 
-export function UserGrowthDualBarChart({
+export const UserGrowthDualBarChart = memo(function UserGrowthDualBarChart({
   data = MOCK_12_MONTH_GROWTH,
   selectedYear: controlledYear,
   onYearChange,
@@ -117,7 +123,10 @@ export function UserGrowthDualBarChart({
     onYearChange?.(y)
   }
 
-  const maxVal = Math.max(...data.map((d) => Math.max(d.landlords || 0, d.tenants || 0)), 1) * 1.15
+  const maxVal = useMemo(
+    () => Math.max(...data.map((d) => Math.max(d.landlords || 0, d.tenants || 0)), 1) * 1.15,
+    [data],
+  )
 
   return (
     <div className="admin-card flex flex-col justify-between p-6">
@@ -181,7 +190,7 @@ export function UserGrowthDualBarChart({
                       <div
                         className={cn(
                           'w-1/2 rounded-t-[3px] bg-brand-600 transition-all duration-200',
-                          isHovered ? 'bg-brand-700 brightness-110 shadow-sm' : 'hover:opacity-90'
+                          isHovered ? 'bg-brand-700 brightness-110 shadow-sm' : 'hover:opacity-90',
                         )}
                         style={{ height: `${Math.max(6, h1)}%` }}
                       />
@@ -189,7 +198,7 @@ export function UserGrowthDualBarChart({
                       <div
                         className={cn(
                           'w-1/2 rounded-t-[3px] bg-blue-300 transition-all duration-200',
-                          isHovered ? 'bg-blue-400 brightness-110 shadow-sm' : 'hover:opacity-90'
+                          isHovered ? 'bg-blue-400 brightness-110 shadow-sm' : 'hover:opacity-90',
                         )}
                         style={{ height: `${Math.max(6, h2)}%` }}
                       />
@@ -198,7 +207,7 @@ export function UserGrowthDualBarChart({
                     <span
                       className={cn(
                         'mt-2.5 text-[11px] font-medium transition-colors',
-                        isHovered ? 'text-brand-700 font-bold' : 'text-slate-400'
+                        isHovered ? 'text-brand-700 font-bold' : 'text-slate-400',
                       )}
                     >
                       {item.month}
@@ -212,9 +221,9 @@ export function UserGrowthDualBarChart({
       </div>
     </div>
   )
-}
+})
 
-export function RevenueSplineChart({
+export const RevenueSplineChart = memo(function RevenueSplineChart({
   data = MOCK_12_MONTH_REVENUE,
   selectedYear: controlledYear,
   onYearChange,
@@ -241,27 +250,33 @@ export function RevenueSplineChart({
   const paddingBottom = 30
 
   const safeData = data.length > 0 ? data : [{ month: 'Jan', revenue: 0 }]
-  const maxRevenue = Math.max(...safeData.map((d) => d.revenue || 0), 1) * 1.15
-  const minRevenue = 0
 
-  const points = safeData.map((d, index) => {
-    const denom = safeData.length > 1 ? safeData.length - 1 : 1
-    const x = paddingX + (index / denom) * (width - paddingX * 2)
-    const y = paddingTop + (1 - ((d.revenue || 0) - minRevenue) / (maxRevenue - minRevenue)) * (height - paddingTop - paddingBottom)
-    return { x, y, data: d }
-  })
+  const { points, pathD, areaD } = useMemo(() => {
+    const maxRevenue = Math.max(...safeData.map((d) => d.revenue || 0), 1) * 1.15
+    const minRevenue = 0
 
-  // Create smooth bezier curve path
-  let pathD = `M ${points[0].x} ${points[0].y}`
-  for (let i = 1; i < points.length; i++) {
-    const prev = points[i - 1]
-    const curr = points[i]
-    const midX = (prev.x + curr.x) / 2
-    pathD += ` C ${midX} ${prev.y}, ${midX} ${curr.y}, ${curr.x} ${curr.y}`
-  }
+    const pts = safeData.map((d, index) => {
+      const denom = safeData.length > 1 ? safeData.length - 1 : 1
+      const x = paddingX + (index / denom) * (width - paddingX * 2)
+      const y =
+        paddingTop +
+        (1 - ((d.revenue || 0) - minRevenue) / (maxRevenue - minRevenue)) *
+          (height - paddingTop - paddingBottom)
+      return { x, y, data: d }
+    })
 
-  // Area fill under curve
-  const areaD = `${pathD} L ${points[points.length - 1].x} ${height - paddingBottom} L ${points[0].x} ${height - paddingBottom} Z`
+    let spline = `M ${pts[0].x} ${pts[0].y}`
+    for (let i = 1; i < pts.length; i++) {
+      const prev = pts[i - 1]
+      const curr = pts[i]
+      const midX = (prev.x + curr.x) / 2
+      spline += ` C ${midX} ${prev.y}, ${midX} ${curr.y}, ${curr.x} ${curr.y}`
+    }
+
+    const area = `${spline} L ${pts[pts.length - 1].x} ${height - paddingBottom} L ${pts[0].x} ${height - paddingBottom} Z`
+
+    return { points: pts, pathD: spline, areaD: area }
+  }, [safeData])
 
   return (
     <div className="admin-card flex flex-col justify-between p-6">
@@ -373,7 +388,7 @@ export function RevenueSplineChart({
                           'rounded-full bg-white border-2 border-emerald-500 transition-all duration-150',
                           isHovered
                             ? 'h-3.5 w-3.5 ring-4 ring-emerald-500/25 scale-110 shadow-sm'
-                            : 'h-2 w-2 shadow-xs group-hover:scale-125'
+                            : 'h-2 w-2 shadow-xs group-hover:scale-125',
                         )}
                       />
                     </div>
@@ -388,7 +403,7 @@ export function RevenueSplineChart({
                     key={item.month}
                     className={cn(
                       'cursor-pointer transition-colors',
-                      hoveredIdx === idx ? 'text-emerald-700 font-bold' : 'hover:text-slate-600'
+                      hoveredIdx === idx ? 'text-emerald-700 font-bold' : 'hover:text-slate-600',
                     )}
                     onMouseEnter={() => setHoveredIdx(idx)}
                     onMouseLeave={() => setHoveredIdx(null)}
@@ -403,23 +418,38 @@ export function RevenueSplineChart({
       </div>
     </div>
   )
-}
+})
 
-// Retain legacy helpers for AnalyticsPage compatibility
-export function RevenueChart({ data }: { data: { month: string; revenue: number }[] }) {
-  const points = data.map((d) => ({
-    month: d.month,
-    gmv: d.revenue * 7,
-    revenue: d.revenue,
-  }))
+export const RevenueChart = memo(function RevenueChart({
+  data,
+}: {
+  data: { month: string; revenue: number }[]
+}) {
+  const points = useMemo(
+    () =>
+      data.map((d) => ({
+        month: d.month,
+        gmv: d.revenue * 7,
+        revenue: d.revenue,
+      })),
+    [data],
+  )
   return <RevenueSplineChart data={points} />
-}
+})
 
-export function UserGrowthChart({ data }: { data: { month: string; users: number }[] }) {
-  const points = data.map((d) => ({
-    month: d.month,
-    landlords: Math.round(d.users * 0.6),
-    tenants: Math.round(d.users * 0.4),
-  }))
+export const UserGrowthChart = memo(function UserGrowthChart({
+  data,
+}: {
+  data: { month: string; users: number }[]
+}) {
+  const points = useMemo(
+    () =>
+      data.map((d) => ({
+        month: d.month,
+        landlords: Math.round(d.users * 0.6),
+        tenants: Math.round(d.users * 0.4),
+      })),
+    [data],
+  )
   return <UserGrowthDualBarChart data={points} />
-}
+})

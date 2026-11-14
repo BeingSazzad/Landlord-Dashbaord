@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   Building2,
@@ -26,7 +27,7 @@ const navItems = [
   { to: ROUTES.SETTINGS, label: 'Settings', icon: Settings },
 ]
 
-export function Sidebar() {
+export const Sidebar = memo(function Sidebar() {
   const dispatch = useAppDispatch()
 
   return (
@@ -84,4 +85,4 @@ export function Sidebar() {
       </div>
     </aside>
   )
-}
+})

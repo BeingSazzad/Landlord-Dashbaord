@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo, memo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Bell,
@@ -65,14 +65,14 @@ const INITIAL_NOTIFICATIONS: TopNotification[] = [
   },
 ]
 
-export function Topbar({ pageTitle }: TopbarProps) {
+export const Topbar = memo(function Topbar({ pageTitle }: TopbarProps) {
   const user = useAppSelector((s) => s.auth.user)
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState<TopNotification[]>(INITIAL_NOTIFICATIONS)
   const popoverRef = useRef<HTMLDivElement>(null)
 
-  const unreadCount = notifications.filter((n) => !n.read).length
+  const unreadCount = useMemo(() => notifications.filter((n) => !n.read).length, [notifications])
 
   // Click outside to close popover
   useEffect(() => {
@@ -251,4 +251,5 @@ export function Topbar({ pageTitle }: TopbarProps) {
       </div>
     </header>
   )
-}
+})
+
